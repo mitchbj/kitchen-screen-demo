@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#0f1216">
+<title>HM Catering — Kitchen (DEMO)</title>
+<style>
+  :root{
+    --bg:#0f1216; --panel:#1a1f27; --panel2:#232a35; --line:#2f3845;
+    --text:#f2f4f7; --muted:#9aa5b4;
+    --orange:#ff7a1a; --red:#ff3b30; --green:#2fd06f; --blue:#4aa3ff; --amber:#ffc53d;
+    --paper:#fbf8ef; --ink:#1b1b1b; --ink2:#5a5a55;
+    --pizza:#ffe680;
+    --topbar:56px; --slothead:78px; --dots:58px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:var(--bg);color:var(--text);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    overflow:hidden;-webkit-user-select:none;user-select:none;overscroll-behavior:none}
+  button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+  .app{display:flex;flex-direction:column;height:100%;height:100dvh}
+
+  /* ---------- top bar ---------- */
+  .topbar{height:var(--topbar);flex:0 0 auto;display:flex;align-items:center;gap:14px;
+    padding:0 14px;background:#0a0c10;border-bottom:1px solid var(--line)}
+  .brand{font-weight:800;font-size:20px;letter-spacing:.2px;white-space:nowrap}
+  .brand small{color:var(--muted);font-weight:600}
+  .demo-pill{background:#3a2a00;color:var(--amber);border:1px solid #6b5100;font-size:12px;font-weight:800;
+    padding:4px 9px;border-radius:999px;letter-spacing:.6px;white-space:nowrap}
+  .spacer{flex:1}
+  .clock{font-variant-numeric:tabular-nums;font-size:30px;font-weight:800;letter-spacing:1px}
+  .clock .sec{color:var(--muted);font-size:20px}
+  .btn-now{display:none;align-items:center;gap:8px;height:42px;padding:0 16px;border-radius:12px;
+    background:var(--orange);color:#160800;font-weight:900;font-size:16px;letter-spacing:.4px;white-space:nowrap}
+  .btn-now.show{display:inline-flex}
+
+  /* ---------- viewing banner ---------- */
+  .banner{flex:0 0 auto;height:0;overflow:hidden;transition:height .25s ease;background:#2a1a05;
+    color:var(--amber);font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;font-size:16px}
+  .banner.show{height:34px;border-bottom:1px solid #5a3a08}
+  .banner .bar{width:120px;height:6px;border-radius:3px;background:#4a3008;overflow:hidden}
+  .banner .bar i{display:block;height:100%;background:var(--amber);width:100%}
+
+  /* ---------- carousel ---------- */
+  .viewport{flex:1 1 auto;position:relative;overflow:hidden;touch-action:pan-y}
+  .track{display:flex;height:100%;will-change:transform;transition:transform .42s cubic-bezier(.2,.8,.2,1)}
+  .track.dragging{transition:none}
+  .pane{flex:0 0 100%;height:100%;display:flex;flex-direction:column;min-width:0}
+
+  .slothead{flex:0 0 var(--slothead);display:flex;align-items:center;gap:12px;padding:8px 12px;
+    background:var(--panel);border-bottom:3px solid var(--line)}
+  .pane.now .slothead{background:linear-gradient(90deg,#3d1500,#231309 60%,var(--panel));border-bottom-color:var(--orange)}
+  .pane.late .slothead{background:linear-gradient(90deg,#3d0a08,#24100f 60%,var(--panel));border-bottom-color:var(--red)}
+  .pane.done .slothead{border-bottom-color:var(--green)}
+  .nav{flex:0 0 auto;width:60px;height:60px;border-radius:14px;background:var(--panel2);font-size:34px;
+    font-weight:900;display:flex;align-items:center;justify-content:center;border:1px solid var(--line)}
+  .nav:active{background:#334}
+  .nav:disabled{opacity:.25}
+  .slotinfo{flex:1;min-width:0;display:flex;align-items:center;gap:16px}
+  .slottime{font-size:36px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap;letter-spacing:.5px}
+  .slotmeta{color:var(--muted);font-size:15px;font-weight:600;line-height:1.25}
+  .badge{font-size:16px;font-weight:900;letter-spacing:1px;padding:7px 12px;border-radius:10px;white-space:nowrap}
+  .b-now{background:var(--orange);color:#1a0800;animation:pulse 1.4s ease-in-out infinite}
+  .b-late{background:var(--red);color:#fff;animation:pulse 1s ease-in-out infinite}
+  .b-up{background:#1f3550;color:#bfe0ff}
+  .b-done{background:#0f3d22;color:#9ff0c0}
+  @keyframes pulse{50%{filter:brightness(1.25);box-shadow:0 0 18px rgba(255,122,26,.6)}}
+  .countdown{text-align:right;white-space:nowrap}
+  .countdown .lbl{display:block;color:var(--muted);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px}
+  .countdown .val{font-size:34px;font-weight:900;font-variant-numeric:tabular-nums}
+  .pane.now .countdown .val{color:var(--orange)}
+  .pane.late .countdown .val{color:var(--red)}
+
+  /* ---------- tickets ---------- */
+  .tickets{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;
+    padding:18px 14px 16px}
+  .ticket{position:relative;background:var(--paper);color:var(--ink);border-radius:2px;
+    display:flex;flex-direction:column;min-height:0;cursor:pointer;
+    font-family:"Courier New",Courier,"Liberation Mono",monospace;
+    box-shadow:0 8px 20px rgba(0,0,0,.45);transition:background .2s}
+  .ticket::before,.ticket::after{content:"";position:absolute;left:0;right:0;height:8px;background-size:14px 8px;background-repeat:repeat-x}
+  .ticket::before{top:-8px;background-image:conic-gradient(from 135deg at 50% 0,var(--paper) 90deg,transparent 0)}
+  .ticket::after{bottom:-8px;background-image:conic-gradient(from -45deg at 50% 100%,var(--paper) 90deg,transparent 0)}
+  .t-head{padding:8px 12px 8px;border-bottom:2px dashed #b9b5a8;position:relative}
+  .t-head::before,.t-head::after{content:"";position:absolute;bottom:-9px;width:16px;height:16px;border-radius:50%;background:var(--bg)}
+  .t-head::before{left:-8px}.t-head::after{right:-8px}
+  .t-row{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+  .t-no{font-family:Georgia,"Times New Roman",serif;font-weight:900;font-size:28px}
+  .t-time{font-weight:900;font-size:22px}
+  .t-name{font-family:Georgia,"Times New Roman",serif;font-size:21px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .t-tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+  .tag{font-family:system-ui,Arial,sans-serif;font-size:13px;font-weight:900;letter-spacing:.6px;padding:3px 7px;border-radius:4px;border:2px solid var(--ink)}
+  .tag.del{background:var(--ink);color:var(--paper)}
+  .tag.paid{border-color:#137a3a;color:#137a3a}
+  .tag.cash{background:#c4161c;border-color:#c4161c;color:#fff;font-size:15px}
+  .t-body{flex:1;min-height:0;overflow:auto;padding:8px 12px 4px;font-size:16px}
+  .t-sect{font-size:11px;letter-spacing:1.5px;color:var(--ink2);font-weight:700;margin:2px 0 4px;font-family:system-ui,Arial,sans-serif}
+  .line{display:flex;justify-content:space-between;gap:8px;line-height:1.3;padding:1px 0}
+  .line .n{flex:1;min-width:0}
+  .line .p{white-space:nowrap;font-variant-numeric:tabular-nums}
+  .sub{font-size:14px;color:var(--ink2);padding-left:22px;display:flex;justify-content:space-between}
+  .empty-note{color:var(--ink2);font-style:italic;font-size:14px}
+  .pizzas{flex:0 0 auto;max-height:62%;overflow:auto;background:var(--pizza);margin:0 6px;border:3px solid var(--ink);
+    border-radius:6px;padding:6px 8px 4px;font-family:system-ui,"Segoe UI",Arial,sans-serif}
+  .pizzas .ph{display:flex;justify-content:space-between;font-size:12px;font-weight:900;letter-spacing:1.5px;color:#5c4a00}
+  .pz{display:flex;gap:8px;align-items:flex-start;padding:6px 2px;border-top:1px solid rgba(0,0,0,.18);cursor:pointer;border-radius:4px}
+  .pz:first-of-type{border-top:0}
+  .pz:active{background:rgba(0,0,0,.08)}
+  .chk{flex:0 0 28px;height:28px;border:3px solid var(--ink);border-radius:6px;margin-top:2px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;background:#fff}
+  .pz-main{flex:1;min-width:0}
+  .pz-name{font-size:22px;font-weight:900;line-height:1.1;text-transform:uppercase;display:flex;justify-content:space-between;gap:6px}
+  .pz-name .p{font-size:15px;font-weight:700;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .mod{font-size:17px;font-weight:800;line-height:1.2;display:flex;justify-content:space-between;gap:6px}
+  .mod.add{color:#0b5d1e}.mod.rem{color:#a3060c}
+  .mod .p{font-size:14px;font-weight:700;white-space:nowrap}
+  .pz.ticked{opacity:.45}.pz.ticked .pz-main{text-decoration:line-through}
+  .pz.ticked .chk{background:var(--ink);color:var(--pizza)}
+  .pz.ticked .chk::after{content:"✓"}
+  .t-total{padding:8px 12px 10px;font-weight:900;font-size:19px;display:flex;justify-content:space-between;border-top:2px dashed #b9b5a8;margin-top:8px}
+  .t-total small{font-weight:700;font-size:13px;color:var(--ink2);display:block}
+  .stamp{display:none;position:absolute;left:50%;top:38%;transform:translate(-50%,-50%) rotate(-14deg);
+    border:5px solid #0d8a3c;color:#0d8a3c;font:900 34px/1 system-ui,Arial,sans-serif;padding:8px 14px;border-radius:10px;
+    background:rgba(251,248,239,.85);letter-spacing:2px;pointer-events:none;white-space:nowrap}
+  .ticket.done{--paper:#a7a59d;box-shadow:none}
+  .ticket.done > :not(.stamp){opacity:.5}
+  .ticket.done .t-name,.ticket.done .t-no{text-decoration:line-through}
+  .ticket.done .stamp{display:block}
+  .free{border:3px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#4b5666;font-weight:800;font-size:18px;letter-spacing:1px}
+
+  /* ---------- dots ---------- */
+  .dotsbar{flex:0 0 var(--dots);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 120px;
+    background:#0a0c10;border-top:1px solid var(--line);position:relative}
+  .dot{min-width:68px;height:40px;border-radius:20px;background:var(--panel2);border:2px solid var(--line);
+    font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:var(--muted);position:relative;padding:0 10px}
+  .dot.now{border-color:var(--orange);color:var(--orange)}
+  .dot.late{border-color:var(--red);color:#ff8a84}
+  .dot.done{color:#5fbf86;border-color:#1c5a35}
+  .dot.cur{background:var(--text);color:#0b0d11;border-color:var(--text);transform:scale(1.08)}
+  .dot.now.cur{background:var(--orange);border-color:var(--orange);color:#1a0800}
+  .dot.late.cur{background:var(--red);border-color:var(--red);color:#fff}
+  .dot .ct{position:absolute;top:-7px;right:-6px;background:#0a0c10;border:1px solid var(--line);border-radius:9px;font-size:11px;min-width:18px;height:18px;line-height:16px;color:var(--muted)}
+  .speed{position:absolute;right:8px;bottom:8px;display:flex;align-items:center;gap:2px;opacity:.55;font-size:11px;color:var(--muted)}
+  .speed:hover,.speed:focus-within{opacity:1}
+  .speed button{font-size:11px;font-weight:800;padding:4px 6px;border-radius:6px;border:1px solid var(--line)}
+  .speed button.on{background:var(--muted);color:#0b0d11}
+  .demo-foot{position:absolute;left:10px;bottom:8px;font-size:11px;color:#5c6676;max-width:110px;line-height:1.2}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:1100px){
+    .tickets{grid-template-columns:repeat(2,minmax(0,1fr));overflow-y:auto;grid-auto-rows:minmax(560px,auto);row-gap:28px}
+    .free{display:none}
+  }
+  @media (max-width:700px){
+    :root{--topbar:50px;--slothead:70px;--dots:70px}
+    .brand{font-size:14px}.brand small{display:none}
+    .demo-pill .long{display:none}
+    .clock{font-size:22px}.clock .sec{font-size:15px}
+    .demo-pill{font-size:10px;padding:3px 6px}
+    .btn-now{height:36px;padding:0 10px;font-size:13px}
+    .topbar{gap:8px;padding:0 10px}
+    .slothead{gap:8px;padding:6px 8px}
+    .nav{width:46px;height:52px;font-size:28px}
+    .slotinfo{gap:8px;flex-wrap:wrap;row-gap:2px}
+    .slottime{font-size:22px}
+    .slotmeta{display:none}
+    .badge{font-size:12px;padding:4px 7px}
+    .countdown .val{font-size:24px}.countdown .lbl{font-size:10px}
+    .tickets{grid-template-columns:1fr;grid-auto-rows:auto;padding:16px 12px 24px;row-gap:30px}
+    .ticket{min-height:auto}
+    .t-body{overflow:visible}
+    .pizzas{max-height:none}
+    .dotsbar{padding:0 8px 16px;gap:5px;justify-content:center}
+    .dot{min-width:0;flex:1;padding:0 2px;font-size:13px;height:36px}
+    .speed{bottom:1px;right:6px}
+    .demo-foot{bottom:1px;left:8px;max-width:none}
+    .banner.show{height:30px;font-size:13px}
+    .banner .bar{width:60px}
+  }
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <header class="topbar">
+    <div class="brand">HM Catering — Kitchen <small>· Pizza Van</small></div>
+    <span class="demo-pill" title="Demo build with sample orders">DEMO<span class="long"> · SAMPLE ORDERS</span></span>
+    <div class="spacer"></div>
+    <button class="btn-now" id="btnNow" aria-label="Back to now">⟲ Back to NOW</button>
+    <div class="clock" id="clock" aria-live="off">16:52<span class="sec">:00</span></div>
+  </header>
+  <div class="banner" id="banner"><span id="bannerText">Viewing —</span><span class="bar"><i id="bannerBar"></i></span></div>
+  <main class="viewport" id="viewport">
+    <div class="track" id="track"></div>
+  </main>
+  <footer class="dotsbar" id="dotsbar">
+    <div class="demo-foot">Demo clock · sample data</div>
+    <div id="dots" style="display:contents"></div>
+    <div class="speed" id="speed" aria-label="Demo clock speed">
+      <span>clock</span>
+      <button data-s="1" class="on">1×</button><button data-s="10">10×</button><button data-s="60">60×</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= CONFIG ================= */
+const COOK_LEAD_MIN   = 10;      // cooking starts this many minutes before a slot's collection time
+const SLOT_MIN        = 15;      // slot length
+const SNAP_BACK_MS    = 8000;    // idle time before auto-return to the cook-now slot (real ms)
+const DEMO_START      = "16:52"; // demo clock start
+const MAX_PER_SLOT    = 4;
+
+/* ================= MENU (prices in pence) ================= */
+const MENU = {
+  pizza:{ marg:["Margherita",800], pep:["Pepperoni",950], haw:["Hawaiian",1000], veg:["Veggie",950],
+          spec:["Special",1250], chick:["Chicken",1100], meat:["Meat Feast",1400], gcb:["Garlic & Cheese Pizza Bread",700] },
+  add:  { mozz:["Extra Mozzarella",100], peppers:["Red Peppers",50], onion:["Red Onion",50], pineapple:["Pineapple",50],
+          mushroom:["Mushroom",50], pepperoni:["Pepperoni",150], ham:["Ham",150], chicken:["Chicken",150] },
+  rem:  { cheese:["No cheese",-100], sauce:["No sauce",-50], onion:["No onion",-50], peppers:["No peppers",-50],
+          mushrooms:["No mushrooms",-50], pineapple:["No pineapple",-50], ham:["No ham",-150],
+          pepperoni:["No pepperoni",-150], chicken:["No chicken",-150] },
+  chicken:{ sfc5:["Southern Fried Chicken Fillets 5pc",650], sfc3:["Southern Fried Chicken Fillets 3pc",450], nug6:["Chicken Nuggets 6pc",400] },
+  chips:{ chips:["Chips",300] },
+  drink:{ coke:["Coke (can)",150], diet:["Diet Coke (can)",150], up7:["7 UP (can)",150], water:["Water 500ml",100] },
+  dip:  { bbq:["BBQ Dip",50], garlic:["Garlic & Herb Dip",50], chilli:["Sweet Chilli Dip",50] },
+  dessert:{ churros:["Churros and chocolate",350], ice:["Mario's Ice Cream Vanilla",250] }
+};
+const CHICKEN_DIP = 50;
+const CAT_ORDER = ["chicken","chips","drink","dip","dessert"];
+const CAT_LABEL = {chicken:"CHICKEN",chips:"CHIPS",drink:"DRINKS",dip:"DIPS",dessert:"DESSERTS"};
+
+/* item helpers:  P(key, qty, ["+mozz","-onion"]) | C(key, qty, dipKey) | X(cat, key, qty) */
+const P = (k,q=1,mods=[]) => ({cat:"pizza",k,q,mods});
+const C = (k,q=1,dip=null) => ({cat:"chicken",k,q,dip});
+const X = (cat,k,q=1) => ({cat,k,q});
+
+/* ================= SAMPLE ORDERS (DEMO) ================= */
+const SAMPLE = [
+ {slot:"17:00", orders:[
+  {no:101,name:"Gareth Jones",   type:"collection",time:"17:00",pay:"card",items:[P("pep",1,["+mozz"]),X("chips","chips"),X("drink","coke")]},
+  {no:102,name:"Siân Roberts",   type:"delivery",  time:"17:05",pay:"cash",items:[P("marg"),P("veg",1,["-onion"]),C("nug6",1,"bbq"),X("chips","chips",2),X("drink","diet",2),X("dessert","churros")]},
+  {no:103,name:"Dafydd Williams",type:"collection",time:"17:05",pay:"card",items:[P("meat"),P("gcb"),X("drink","up7")]},
+  {no:104,name:"Ffion Hughes",   type:"collection",time:"17:10",pay:"cash",items:[P("haw",1,["+mozz","-pineapple"]),C("sfc3",1,"garlic"),X("drink","water")]}
+ ]},
+ {slot:"17:15", orders:[
+  {no:105,name:"Mitch Bennett",  type:"collection",time:"17:15",pay:"card",items:[P("spec",1,["+mushroom"]),P("chick"),X("chips","chips"),X("drink","coke",2),X("dessert","ice")]},
+  {no:106,name:"Rhys Evans",     type:"delivery",  time:"17:20",pay:"card",items:[P("pep",2),X("dip","garlic"),X("dip","bbq")]},
+  {no:107,name:"Cerys Parry",    type:"collection",time:"17:20",pay:"cash",items:[P("veg",1,["+mozz","+pineapple"]),C("nug6",1,"chilli"),X("drink","water")]},
+  {no:108,name:"Elin Owen",      type:"collection",time:"17:25",pay:"card",items:[P("chick",1,["-onion"]),C("sfc5",1,"bbq"),X("chips","chips"),X("drink","diet")]}
+ ]},
+ {slot:"17:30", orders:[
+  {no:109,name:"Iwan Griffiths", type:"collection",time:"17:30",pay:"card",items:[P("meat",1,["-ham"]),P("meat"),X("chips","chips",2),X("drink","coke",2)]},
+  {no:110,name:"Carys Davies",   type:"delivery",  time:"17:35",pay:"cash",items:[P("haw"),P("gcb"),X("dessert","churros",2)]},
+  {no:111,name:"Huw Thomas",     type:"collection",time:"17:35",pay:"card",items:[P("pep",1,["+onion","+peppers"]),X("drink","up7")]},
+  {no:112,name:"Bethan Lloyd",   type:"collection",time:"17:40",pay:"cash",items:[P("marg",1,["+ham","+mushroom"]),P("veg",1,["-mushrooms"]),C("nug6",1,"garlic"),X("drink","water",2)]}
+ ]},
+ {slot:"17:45", orders:[
+  {no:113,name:"Owain Pritchard",type:"collection",time:"17:45",pay:"card",items:[P("spec"),X("chips","chips")]},
+  {no:114,name:"Megan Edwards",  type:"delivery",  time:"17:50",pay:"card",items:[P("chick",1,["+mozz"]),X("dessert","ice"),X("drink","diet")]},
+  {no:115,name:"Llŷr Morgan",    type:"collection",time:"17:55",pay:"cash",items:[P("pep"),P("marg"),C("sfc3",1,"bbq"),X("drink","coke")]}
+ ]},
+ {slot:"18:00", orders:[
+  {no:116,name:"Nia Jenkins",    type:"collection",time:"18:00",pay:"card",items:[P("haw",1,["+chicken"]),X("chips","chips")]},
+  {no:117,name:"Tomos Price",    type:"collection",time:"18:05",pay:"cash",items:[P("meat",1,["+mozz"]),P("gcb"),X("drink","up7",2)]},
+  {no:118,name:"Gwen Hughes",    type:"delivery",  time:"18:05",pay:"card",items:[P("veg",1,["-onion","-peppers"]),X("drink","water"),X("dessert","churros")]},
+  {no:119,name:"Steffan Rowlands",type:"collection",time:"18:10",pay:"card",items:[P("spec",1,["+pineapple"]),P("chick"),C("sfc5",1,"chilli"),X("chips","chips"),X("drink","coke")]}
+ ]},
+ {slot:"18:15", orders:[
+  {no:120,name:"Lowri Ellis",    type:"collection",time:"18:15",pay:"card",items:[P("marg"),X("dip","garlic"),X("drink","diet")]},
+  {no:121,name:"Aled Williams",  type:"delivery",  time:"18:20",pay:"cash",items:[P("meat"),P("pep",1,["+mozz"]),X("chips","chips",2),X("drink","coke",3)]},
+  {no:122,name:"Angharad Jones", type:"collection",time:"18:20",pay:"card",items:[P("veg",1,["-cheese"]),X("dessert","ice",2)]},
+  {no:123,name:"Dewi Roberts",   type:"collection",time:"18:25",pay:"cash",items:[P("haw",1,["+mozz"]),C("nug6",1,"bbq"),X("drink","water")]}
+ ]}
+];
+
+/* ================= HELPERS ================= */
+const toSec = hm => { const [h,m]=hm.split(":").map(Number); return h*3600+m*60; };
+const hhmm = s => { s=((Math.floor(s)%86400)+86400)%86400; return String(Math.floor(s/3600)).padStart(2,"0")+":"+String(Math.floor(s/60)%60).padStart(2,"0"); };
+const mmss = s => { s=Math.max(0,Math.floor(s)); return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); };
+const gbp  = p => (p<0?"−":"")+"£"+(Math.abs(p)/100).toFixed(2);
+const esc  = s => String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function modInfo(m){
+  const tbl = m[0]==="+" ? MENU.add : MENU.rem, key=m.slice(1), e=tbl[key];
+  if(!e) throw new Error("Unknown modifier "+m);
+  return {add:m[0]==="+", label:e[0], price:e[1]};
+}
+function priceItem(it){
+  const e = MENU[it.cat][it.k]; if(!e) throw new Error("Unknown item "+it.cat+"/"+it.k);
+  let unit = e[1], mods=[];
+  if(it.cat==="pizza"){ mods = (it.mods||[]).map(modInfo); unit += mods.reduce((a,m)=>a+m.price,0); }
+  if(it.cat==="chicken" && it.dip){ unit += CHICKEN_DIP; }
+  return {name:e[0], base:e[1], unit, line:unit*it.q, mods};
+}
+
+/* build model */
+const slots = SAMPLE.map((s,i)=>{
+  const start = toSec(s.slot);
+  const orders = s.orders.slice(0,MAX_PER_SLOT).map(o=>{
+    const items = o.items.map(it=>Object.assign({},it,priceItem(it)));
+    const total = items.reduce((a,b)=>a+b.line,0);
+    return Object.assign({},o,{items,total,pizzas:items.filter(x=>x.cat==="pizza"),others:items.filter(x=>x.cat!=="pizza")});
+  });
+  return {i,label:s.slot,start,end:start+SLOT_MIN*60,cookStart:start-COOK_LEAD_MIN*60,cookEnd:start-COOK_LEAD_MIN*60+SLOT_MIN*60,orders};
+});
+
+/* ================= STATE ================= */
+const state = {
+  demoSec: toSec(DEMO_START), speed:1, cur:0, nowIdx:0,
+  lastInteract: performance.now(), doneOrders:new Set(), tickedPizzas:new Set(), followNow:true
+};
+
+/* ================= RENDER ================= */
+const $ = id => document.getElementById(id);
+const track=$("track"), dotsEl=$("dots"), viewport=$("viewport");
+
+function ticketHTML(o){
+  const others = o.others.slice().sort((a,b)=>CAT_ORDER.indexOf(a.cat)-CAT_ORDER.indexOf(b.cat));
+  let body = "", lastCat=null;
+  for(const it of others){
+    if(it.cat!==lastCat){ body+=`<div class="t-sect">${CAT_LABEL[it.cat]}</div>`; lastCat=it.cat; }
+    body += `<div class="line"><span class="n">${it.q}× ${esc(it.name)}</span><span class="p">${gbp(it.line)}</span></div>`;
+    if(it.cat==="chicken" && it.dip) body += `<div class="sub"><span>+ ${esc(MENU.dip[it.dip][0])}</span><span>+${gbp(CHICKEN_DIP)}${it.q>1?" ea":""}</span></div>`;
+  }
+  if(!others.length) body = `<div class="empty-note">No sides — pizzas only</div>`;
+  const pq = o.pizzas.reduce((a,p)=>a+p.q,0);
+  let pz = "";
+  o.pizzas.forEach((p,idx)=>{
+    const mods = p.mods.map(m=>`<div class="mod ${m.add?"add":"rem"}"><span>${m.add?"+ ":"— "}${esc(m.label)}</span><span class="p">${m.price>0?"+":""}${gbp(m.price)}</span></div>`).join("");
+    pz += `<div class="pz" data-pz="${o.no}-${idx}"><span class="chk"></span><div class="pz-main">
+      <div class="pz-name"><span>${p.q}× ${esc(p.name)}</span><span class="p">${gbp(p.line)}</span></div>${mods}</div></div>`;
+  });
+  const payTag = o.pay==="card" ? `<span class="tag paid">✓ PAID · CARD</span>` : `<span class="tag cash">CASH TO PAY ${gbp(o.total)}</span>`;
+  return `<article class="ticket" data-order="${o.no}">
+    <div class="t-head">
+      <div class="t-row"><span class="t-no">#${o.no}</span><span class="t-time">${o.type==="delivery"?"DEL":"COL"} ${o.time}</span></div>
+      <div class="t-name">${esc(o.name)}</div>
+      <div class="t-tags"><span class="tag ${o.type==="delivery"?"del":""}">${o.type==="delivery"?"DELIVERY":"COLLECTION"}</span>${payTag}</div>
+    </div>
+    <div class="t-body">${body}</div>
+    ${o.pizzas.length?`<div class="pizzas"><div class="ph"><span>PIZZAS 12"</span><span>${pq} TOTAL</span></div>${pz}</div>`:""}
+    <div class="t-total"><span>TOTAL<small>${o.items.reduce((a,b)=>a+b.q,0)} items · ${o.pay==="card"?"paid card":"cash due"}</small></span><span>${gbp(o.total)}</span></div>
+    <div class="stamp">✓ DONE</div>
+  </article>`;
+}
+
+function build(){
+  track.innerHTML = slots.map(s=>{
+    const pq = s.orders.reduce((a,o)=>a+o.pizzas.reduce((x,p)=>x+p.q,0),0);
+    const free = Math.max(0,MAX_PER_SLOT-s.orders.length);
+    return `<section class="pane" data-slot="${s.i}">
+      <div class="slothead">
+        <button class="nav" data-nav="-1" aria-label="Previous slot">‹</button>
+        <div class="slotinfo">
+          <div class="slottime">${s.label} – ${hhmm(s.end)}</div>
+          <span class="badge" data-badge></span>
+          <div class="slotmeta">${s.orders.length} order${s.orders.length!==1?"s":""} · ${pq} pizza${pq!==1?"s":""}<br>Cook from ${hhmm(s.cookStart)}</div>
+        </div>
+        <div class="countdown"><span class="lbl" data-cdl>Cook in</span><span class="val" data-cdv>--:--</span></div>
+        <button class="nav" data-nav="1" aria-label="Next slot">›</button>
+      </div>
+      <div class="tickets">${s.orders.map(ticketHTML).join("")}${'<div class="free">FREE SPACE</div>'.repeat(free)}</div>
+    </section>`;
+  }).join("");
+  dotsEl.innerHTML = slots.map(s=>`<button class="dot" data-dot="${s.i}" aria-label="Slot ${s.label}">${s.label}<span class="ct">${s.orders.length}</span></button>`).join("");
+  track.querySelectorAll('.pane:first-child [data-nav="-1"], .pane:last-child [data-nav="1"]').forEach(b=>b.disabled=true);
+}
+
+function slotStatus(s,t){
+  const allDone = s.orders.length && s.orders.every(o=>state.doneOrders.has(o.no));
+  if(allDone) return "done";
+  if(t>=s.cookStart && t<s.cookEnd) return "now";
+  if(t>=s.cookEnd) return "late";
+  return "up";
+}
+function computeNowIdx(t){
+  // the slot whose cook window contains now; before service → first; after → last
+  for(const s of slots){ if(t>=s.cookStart && t<s.cookEnd) return s.i; }
+  if(t<slots[0].cookStart) return 0;
+  return slots.length-1;
+}
+
+function update(){
+  const t = state.demoSec;
+  $("clock").innerHTML = hhmm(t)+`<span class="sec">:${String(Math.floor(t)%60).padStart(2,"0")}</span>`;
+  const prevNow = state.nowIdx;
+  state.nowIdx = computeNowIdx(t);
+  if(state.nowIdx!==prevNow && state.cur===prevNow){ goTo(state.nowIdx,false); }
+
+  slots.forEach(s=>{
+    const pane = track.children[s.i], st = slotStatus(s,t);
+    pane.classList.toggle("now",st==="now"); pane.classList.toggle("late",st==="late"); pane.classList.toggle("done",st==="done");
+    const badge = pane.querySelector("[data-badge]"), lbl=pane.querySelector("[data-cdl]"), val=pane.querySelector("[data-cdv]");
+    if(st==="now"){ badge.className="badge b-now"; badge.textContent="🔥 COOK NOW";
+      if(t<s.start){ lbl.textContent="Collection in"; val.textContent=mmss(s.start-t); }
+      else { lbl.textContent="Collecting · ends in"; val.textContent=mmss(s.end-t); } }
+    else if(st==="late"){ badge.className="badge b-late"; badge.textContent="⚠ LATE"; lbl.textContent="Overdue by"; val.textContent="+"+mmss(t-s.cookEnd); }
+    else if(st==="done"){ badge.className="badge b-done"; badge.textContent="✓ ALL DONE"; lbl.textContent=t<s.cookStart?"Cook in":"Slot"; val.textContent=t<s.cookStart?mmss(s.cookStart-t):"done"; }
+    else { badge.className="badge b-up"; badge.textContent="UPCOMING"; lbl.textContent="Cook in"; val.textContent=mmss(s.cookStart-t); }
+    const d = dotsEl.children[s.i];
+    d.classList.toggle("now",st==="now"); d.classList.toggle("late",st==="late"); d.classList.toggle("done",st==="done");
+    d.classList.toggle("cur",s.i===state.cur);
+  });
+
+  // snap-back / banner
+  const away = state.cur!==state.nowIdx;
+  $("btnNow").classList.toggle("show",away);
+  $("banner").classList.toggle("show",away);
+  if(away){
+    const left = Math.max(0,SNAP_BACK_MS-(performance.now()-state.lastInteract));
+    $("bannerText").textContent = `Viewing ${slots[state.cur].label} — returning to NOW (${slots[state.nowIdx].label}) in ${Math.ceil(left/1000)}s`;
+    $("bannerBar").style.width = (left/SNAP_BACK_MS*100)+"%";
+    if(left<=0 && !drag.active) goTo(state.nowIdx,false);
+  }
+}
+
+function goTo(i,user=true){
+  i = Math.max(0,Math.min(slots.length-1,i));
+  state.cur = i;
+  track.classList.remove("dragging");
+  track.style.transform = `translateX(${-i*100}%)`;
+  if(user) touch();
+  [...dotsEl.children].forEach((d,k)=>d.classList.toggle("cur",k===i));
+  track.children[i].querySelector(".tickets").scrollTop = 0;
+}
+function touch(){ state.lastInteract = performance.now(); }
+
+/* ================= INPUT ================= */
+const drag = {active:false, down:false, x0:0, y0:0, dx:0, t0:0, id:null, suppress:false};
+viewport.addEventListener("pointerdown",e=>{
+  if(e.button!==undefined && e.button!==0) return;
+  drag.down=true; drag.active=false; drag.x0=e.clientX; drag.y0=e.clientY; drag.dx=0; drag.t0=performance.now(); drag.id=e.pointerId; drag.suppress=false;
+  touch();
+});
+viewport.addEventListener("pointermove",e=>{
+  if(!drag.down || e.pointerId!==drag.id) return;
+  const dx=e.clientX-drag.x0, dy=e.clientY-drag.y0;
+  if(!drag.active){
+    if(Math.abs(dx)>10 && Math.abs(dx)>Math.abs(dy)){ drag.active=true; drag.suppress=true; track.classList.add("dragging"); try{viewport.setPointerCapture(e.pointerId)}catch(_){} }
+    else if(Math.abs(dy)>12){ drag.down=false; return; }
+    else return;
+  }
+  let d = dx;
+  if((state.cur===0 && dx>0)||(state.cur===slots.length-1 && dx<0)) d = dx*0.3; // edge resistance
+  drag.dx=d;
+  track.style.transform = `translateX(calc(${-state.cur*100}% + ${d}px))`;
+  touch();
+});
+function endDrag(e){
+  if(!drag.down) return; drag.down=false;
+  if(!drag.active) return;
+  drag.active=false;
+  const W=viewport.clientWidth, dt=Math.max(1,performance.now()-drag.t0), v=drag.dx/dt;
+  let target=state.cur;
+  if(drag.dx<-W*0.18 || v<-0.5) target++;
+  else if(drag.dx>W*0.18 || v>0.5) target--;
+  goTo(target);
+  setTimeout(()=>{drag.suppress=false},50);
+}
+viewport.addEventListener("pointerup",endDrag);
+viewport.addEventListener("pointercancel",()=>{ if(drag.active){drag.down=true;endDrag();} drag.down=false; });
+viewport.addEventListener("click",e=>{ if(drag.suppress){e.stopPropagation();e.preventDefault();drag.suppress=false;} },true);
+viewport.addEventListener("scroll",touch,true);
+
+viewport.addEventListener("click",e=>{
+  touch();
+  const nav=e.target.closest("[data-nav]"); if(nav){ goTo(state.cur+Number(nav.dataset.nav)); return; }
+  const pz=e.target.closest("[data-pz]");
+  if(pz){ const k=pz.dataset.pz; state.tickedPizzas.has(k)?state.tickedPizzas.delete(k):state.tickedPizzas.add(k); pz.classList.toggle("ticked",state.tickedPizzas.has(k)); return; }
+  const tk=e.target.closest(".ticket");
+  if(tk){ const no=Number(tk.dataset.order); state.doneOrders.has(no)?state.doneOrders.delete(no):state.doneOrders.add(no); tk.classList.toggle("done",state.doneOrders.has(no)); update(); }
+});
+dotsEl.addEventListener("click",e=>{ const d=e.target.closest("[data-dot]"); if(d) goTo(Number(d.dataset.dot)); });
+$("btnNow").addEventListener("click",()=>goTo(state.nowIdx));
+document.addEventListener("keydown",e=>{
+  if(e.key==="ArrowLeft"){ goTo(state.cur-1); e.preventDefault(); }
+  else if(e.key==="ArrowRight"){ goTo(state.cur+1); e.preventDefault(); }
+  else if(e.key==="Home"||e.key==="n"||e.key==="N"){ goTo(state.nowIdx); }
+});
+$("speed").addEventListener("click",e=>{
+  const b=e.target.closest("button[data-s]"); if(!b) return;
+  state.speed=Number(b.dataset.s);
+  [...$("speed").querySelectorAll("button")].forEach(x=>x.classList.toggle("on",x===b));
+  touch();
+});
+window.addEventListener("resize",()=>goTo(state.cur,false));
+
+/* ================= CLOCK LOOP ================= */
+let lastReal = performance.now();
+function tick(){
+  const now=performance.now(); state.demoSec += (now-lastReal)/1000*state.speed; lastReal=now;
+  update();
+}
+
+build();
+state.nowIdx = computeNowIdx(state.demoSec);
+goTo(state.nowIdx,false);
+update();
+setInterval(tick,200);
+
+/* test/debug hook (demo only) */
+window.__kitchen = {
+  state, slots, goTo, COOK_LEAD_MIN, SNAP_BACK_MS,
+  setSpeed:s=>{state.speed=s;}, setTime:hm=>{state.demoSec=toSec(hm);update();},
+  summary:()=>slots.map(s=>({slot:s.label,orders:s.orders.map(o=>({no:o.no,total:o.total}))}))
+};
+})();
+</script>
+</body>
+</html>
