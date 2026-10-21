@@ -529,7 +529,7 @@ function priceItem(it){
 /* ================= MODEL ================= */
 /* what's on each pizza → which removals are offered (cheese & sauce always) */
 const PIZZA_HAS = { marg:[], pep:["pepperoni"], haw:["ham","pineapple"], veg:["peppers","onion","mushrooms"],
-  spec:["pepperoni","ham","peppers","onion"], chick:["chicken","peppers","onion"], meat:["pepperoni","ham","chicken"] };
+  spec:["ham","pepperoni","peppers","onion","mushrooms"], chick:["chicken","peppers","onion","mushrooms"], meat:["chicken","ham","pepperoni","peppers","onion","mushrooms"] };
 const ADD2REM = {peppers:"peppers",onion:"onion",pineapple:"pineapple",mushroom:"mushrooms",pepperoni:"pepperoni",ham:"ham",chicken:"chicken"};
 const lsGet = (k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(_){ return d; } };
 const lsSet = (k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(_){} };
