@@ -140,11 +140,148 @@
   .dot.now.cur{background:var(--orange);border-color:var(--orange);color:#1a0800}
   .dot.late.cur{background:var(--red);border-color:var(--red);color:#fff}
   .dot .ct{position:absolute;top:-7px;right:-6px;background:#0a0c10;border:1px solid var(--line);border-radius:9px;font-size:11px;min-width:18px;height:18px;line-height:16px;color:var(--muted)}
+  .dotsbar.many{padding:0 200px 0 120px;gap:6px}
+  .dotsbar.many .dot{min-width:58px;padding:0 6px;font-size:14px}
   .speed{position:absolute;right:8px;bottom:8px;display:flex;align-items:center;gap:2px;opacity:.55;font-size:11px;color:var(--muted)}
   .speed:hover,.speed:focus-within{opacity:1}
   .speed button{font-size:11px;font-weight:800;padding:4px 6px;border-radius:6px;border:1px solid var(--line)}
   .speed button.on{background:var(--muted);color:#0b0d11}
   .demo-foot{position:absolute;left:10px;bottom:8px;font-size:11px;color:#5c6676;max-width:110px;line-height:1.2}
+
+
+  /* ---------- walk-in: top-bar button, header pizza cap, badges ---------- */
+  .btn-new{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 22px;border-radius:12px;
+    background:var(--green);color:#03210f;font-weight:900;font-size:19px;letter-spacing:.3px;white-space:nowrap;
+    box-shadow:0 0 0 3px rgba(47,208,111,.22)}
+  .btn-new:active{filter:brightness(.88)}
+  .btn-new .plus{font-size:28px;line-height:1;margin-top:-3px}
+  .pcap{font-size:16px;font-weight:900;padding:6px 10px;border-radius:9px;background:#22303f;color:#cfe3f7;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .pcap.full{background:#4a1512;color:#ffb3ad}
+  .tag.walkin{background:#5b2bd6;border-color:#5b2bd6;color:#fff}
+  .t-phone{font:700 13px system-ui,Arial,sans-serif;color:var(--ink2);margin-top:2px}
+  .ticket.flash{animation:flash .9s ease 3}
+  @keyframes flash{50%{box-shadow:0 0 0 7px var(--green),0 8px 20px rgba(0,0,0,.45)}}
+
+  /* ---------- settings popover ---------- */
+  .gear{margin-left:6px}
+  .settings{display:none;position:absolute;right:8px;bottom:calc(100% + 8px);z-index:30;width:270px;background:var(--panel);
+    border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:0 14px 34px rgba(0,0,0,.55);font-size:14px}
+  .settings.show{display:block}
+  .settings h4{font-size:12px;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:10px}
+  .set-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:12px;font-weight:700}
+  .stepper{display:flex;align-items:center;gap:6px}
+  .stepper button{width:40px;height:40px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-size:22px;font-weight:900}
+  .stepper b{min-width:28px;text-align:center;font-size:20px;font-variant-numeric:tabular-nums}
+  .btn-reset{width:100%;height:44px;border-radius:10px;border:1px solid #6a2622;color:#ff9f99;background:#2a1110;font-weight:800}
+  .btn-reset.armed{background:var(--red);color:#fff;border-color:var(--red)}
+  .set-note{color:var(--muted);font-size:12px;margin-top:8px;line-height:1.3}
+
+  /* ---------- new-order builder ---------- */
+  .nb{position:fixed;inset:0;z-index:50;background:var(--bg);display:flex;flex-direction:column}
+  .nb[hidden]{display:none}
+  .nb-head{flex:0 0 64px;display:flex;align-items:center;gap:14px;padding:0 14px;background:#0a0c10;border-bottom:1px solid var(--line)}
+  .nb-head h2{font-size:24px;font-weight:900;white-space:nowrap}
+  .nb-head .clock{font-size:24px}
+  .nb-x{height:50px;padding:0 18px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-weight:800;font-size:17px;white-space:nowrap}
+  .nb-x.armed{background:var(--red);border-color:var(--red);color:#fff}
+  .nb-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(0,1fr) 400px 330px}
+  .nb-col{min-height:0;overflow:auto;padding:14px;border-right:1px solid var(--line)}
+  .nb-col:last-child{border-right:0}
+  .nb-menu{display:flex;flex-direction:column;padding:0;overflow:hidden}
+  .nb-tabs{flex:0 0 auto;display:flex;gap:6px;padding:12px 12px;overflow-x:auto;border-bottom:1px solid var(--line);scrollbar-width:none}
+  .nb-tab{flex:1 0 auto;height:54px;padding:0 12px;border-radius:12px;background:var(--panel2);border:2px solid var(--line);font-weight:800;font-size:17px}
+  .nb-tab.on{background:var(--text);color:#0b0d11;border-color:var(--text)}
+  .nb-items{flex:1;min-height:0;overflow:auto;padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(165px,1fr));gap:12px;align-content:start}
+  .nb-item{min-height:104px;border-radius:14px;background:var(--panel);border:2px solid var(--line);padding:12px 14px;text-align:left;
+    display:flex;flex-direction:column;justify-content:space-between;gap:8px}
+  .nb-item:active{background:#2c3644;border-color:var(--green)}
+  .nb-item b{font-size:19px;line-height:1.2}
+  .nb-item .pr{display:flex;justify-content:space-between;align-items:baseline;gap:6px}
+  .nb-item .pr span{color:var(--amber);font-weight:900;font-size:19px;font-variant-numeric:tabular-nums}
+  .nb-item .pr small{color:var(--muted);font-weight:700;font-size:12px}
+  .nb-h{font-size:13px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:800;margin:0 0 10px;display:flex;justify-content:space-between;gap:8px}
+  .nb-basket{display:flex;flex-direction:column}
+  .nb-lines{flex:1;min-height:90px;overflow:auto}
+  .nb-empty{color:var(--muted);font-weight:600;padding:24px 6px;text-align:center;border:2px dashed var(--line);border-radius:12px}
+  .bl{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .bl-main{flex:1;min-width:0}
+  .bl-top{display:flex;justify-content:space-between;gap:8px;font-weight:800;font-size:16px;line-height:1.25}
+  .bl-top .p{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .bl-mod{font-size:13px;font-weight:700;color:#8fe3a9;display:flex;justify-content:space-between}
+  .bl-mod.rem{color:#ff9f99}.bl-mod.dip{color:#9fd0ff}
+  .bl-ctl{display:flex;align-items:center;gap:4px;flex:0 0 auto}
+  .qb{width:44px;height:44px;border-radius:10px;background:var(--panel2);border:1px solid var(--line);font-size:26px;font-weight:900;line-height:1}
+  .bl-q{min-width:30px;text-align:center;font-weight:900;font-size:19px}
+  .bl-each{color:var(--muted);font-size:12px;font-weight:700;display:block}
+  .bl-rm{flex:0 0 auto;width:44px;height:44px;font-size:18px;border-radius:10px;color:#ff8a84;border:1px solid #5a2422;font-weight:800}
+  .nb-cust{flex:0 0 auto;margin-top:10px}
+  .row2{display:flex;gap:10px}
+  .row2>*{flex:1;min-width:0}
+  .row2>.f-name{flex:1.6}
+  .nb-cust .seg{gap:6px;margin-bottom:6px}
+  .nb-cust .seg button{font-size:14px;padding:2px 6px;line-height:1.15}
+  .nb-cust .fld{margin-bottom:8px}
+  .nb-cust .fld input{height:52px}
+  .nb-cust .seg button{min-height:52px}
+  .nb-total{display:flex;justify-content:space-between;align-items:baseline;border-top:2px dashed var(--line);padding-top:10px;margin-top:8px;font-size:18px;font-weight:800}
+  .nb-total b{font-size:32px;font-variant-numeric:tabular-nums}
+  .fld{display:block;margin-bottom:12px}
+  .fld>span,.lbl2{display:block;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:800;margin-bottom:6px}
+  .fld input{width:100%;height:58px;border-radius:12px;border:2px solid var(--line);background:#0b0e13;color:var(--text);
+    font:700 22px system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;padding:0 14px;-webkit-user-select:text;user-select:text}
+  .fld input:focus{outline:none;border-color:var(--blue)}
+  .fld.err input{border-color:var(--red);box-shadow:0 0 0 3px rgba(255,59,48,.25)}
+  .fld.err>span{color:#ff8a84}
+  .seg{display:flex;gap:8px;margin-bottom:12px}
+  .seg button{flex:1;min-height:54px;border-radius:12px;background:var(--panel2);border:2px solid var(--line);font-weight:800;font-size:16px;padding:4px 8px}
+  .seg button.on{background:#123b24;border-color:var(--green);color:#c8f7da}
+  .nb-slots{display:flex;flex-direction:column;gap:8px}
+  .sl{display:flex;align-items:center;gap:10px;min-height:54px;padding:6px 10px;border-radius:12px;background:var(--panel);border:2px solid var(--line);text-align:left;width:100%}
+  .sl .tm{font-size:22px;font-weight:900;font-variant-numeric:tabular-nums;min-width:64px}
+  .sl .inf{flex:1;min-width:0;font-size:13px;color:var(--muted);font-weight:700;line-height:1.3}
+  .sl .inf b{color:var(--text);font-size:15px;white-space:nowrap}
+  .sl .st{font-size:11px;font-weight:900;letter-spacing:.5px;padding:5px 8px;border-radius:7px;background:#173a26;color:#9ff0c0;white-space:nowrap}
+  .sl.on{border-color:var(--green);background:#123b24;box-shadow:0 0 0 3px rgba(47,208,111,.2)}
+  .sl.on .st{background:var(--green);color:#03210f}
+  .sl:disabled{opacity:.42;cursor:not-allowed;background:#12161c}
+  .sl:disabled .st{background:#3a1715;color:#ff9f99}
+  .sl.cooking:disabled .st{background:#3d1500;color:#ffb27a}
+  .sl-none{color:#ff8a84;font-weight:700;padding:8px 2px}
+  .nb-foot{flex:0 0 auto;display:flex;align-items:center;gap:14px;padding:10px 14px;background:#0a0c10;border-top:1px solid var(--line)}
+  .nb-msg{color:var(--muted);font-weight:700;font-size:15px;min-width:0}
+  .nb-msg.err{color:#ff8a84}
+  .nb-ftot{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .nb-ftot small{font-size:14px;color:var(--muted);font-weight:700;margin-right:6px}
+  .nb-accept{height:62px;padding:0 32px;border-radius:14px;background:var(--green);color:#03210f;font-weight:900;font-size:22px;white-space:nowrap}
+  .nb-accept:active{filter:brightness(.88)}
+  .nb-toast{position:absolute;left:24px;bottom:96px;background:#123b24;border:1px solid var(--green);color:#c8f7da;
+    font-weight:800;padding:10px 18px;border-radius:12px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:6;white-space:nowrap}
+  .nb-toast.show{opacity:1}
+  /* options sheet */
+  .sheet-back{position:absolute;inset:0;background:rgba(0,0,0,.62);display:flex;align-items:center;justify-content:center;z-index:5}
+  .sheet-back[hidden]{display:none}
+  .sheet{width:min(660px,94vw);max-height:92%;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.6)}
+  .sh-head{padding:16px 18px;display:flex;justify-content:space-between;align-items:baseline;gap:10px;border-bottom:1px solid var(--line)}
+  .sh-head h3{font-size:24px;font-weight:900}
+  .sh-head span{color:var(--muted);font-weight:700}
+  .sh-body{overflow:auto;padding:14px 18px 4px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+  .chip{min-height:54px;padding:6px 14px;border-radius:12px;background:var(--panel2);border:2px solid var(--line);font-weight:800;font-size:16px;text-align:left}
+  .chip small{display:block;font-size:12px;color:var(--muted);font-weight:700}
+  .chip.on.add{background:#123b24;border-color:var(--green)}
+  .chip.on.rem{background:#3a1715;border-color:var(--red)}
+  .chip.on.dip{background:#1f3550;border-color:var(--blue)}
+  .sh-foot{display:flex;gap:10px;padding:12px 18px;border-top:1px solid var(--line);align-items:center}
+  .sh-cancel{height:58px;padding:0 18px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);font-weight:800}
+  .sh-add{flex:1;height:58px;white-space:nowrap;border-radius:12px;background:var(--green);color:#03210f;font-weight:900;font-size:19px}
+  @media (max-width:1100px){ .nb-main{grid-template-columns:minmax(0,1fr) 360px 300px} }
+  @media (max-width:1000px){
+    .nb-main{display:block;overflow:auto}
+    .nb-col{overflow:visible;border-right:0;border-bottom:1px solid var(--line)}
+    .nb-menu{overflow:visible}
+    .nb-tabs{position:sticky;top:0;z-index:2;background:var(--bg)}
+    .nb-items,.nb-lines{overflow:visible}
+  }
 
   /* ---------- responsive ---------- */
   @media (max-width:1100px){
@@ -176,16 +313,48 @@
     .demo-foot{bottom:1px;left:8px;max-width:none}
     .banner.show{height:30px;font-size:13px}
     .banner .bar{width:60px}
+    .brand .bk{display:none}
+    .topbar:has(.btn-now.show) .brand{display:none}
+    .btn-new{height:40px;padding:0 12px;font-size:15px;gap:5px}
+    .btn-new .plus{font-size:22px}
+    .btn-now .long{display:none}
+    .pcap{font-size:12px;padding:4px 7px}
+    .dot{font-size:11px}
+    .dotsbar.many{padding:0 8px 16px;gap:5px}
+    .dotsbar.many .dot{min-width:0;padding:0 2px;font-size:12px}
+    .dotsbar.many .dot.far{display:none}
+    .nb-head{flex-basis:56px;gap:8px;padding:0 10px}
+    .nb-head h2{font-size:18px}
+    .nb-head .clock{display:none}
+    .nb-x{height:44px;padding:0 12px;font-size:15px}
+    .nb-items{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px}
+    .nb-item{min-height:88px;padding:10px}
+    .nb-item b{font-size:16px}
+    .nb-tab{height:48px;padding:0 14px;font-size:15px}
+    .nb-foot{gap:10px;padding:8px 10px;flex-wrap:wrap}
+    .nb-msg{flex:1 1 100%;font-size:13px}
+    .nb-msg:empty{display:none}
+    .nb-ftot{font-size:21px;flex:1}
+    .nb-accept{height:56px;padding:0 20px;font-size:19px}
+    .sheet-back{align-items:flex-end}
+    .sheet{width:100%;border-radius:18px 18px 0 0;max-height:94%}
+    .nb-toast{bottom:84px;left:50%;transform:translateX(-50%)}
+    .row2{flex-wrap:wrap}
+    .row2>*{flex:1 1 100%}
+    .nb-cust .seg button{font-size:15px}
+    .btn-new{padding:0 10px}
+    .nb-cust{margin-top:16px}
   }
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <header class="topbar">
-    <div class="brand">HM Catering — Kitchen <small>· Pizza Van</small></div>
+    <div class="brand">HM Catering<span class="bk"> — Kitchen</span> <small>· Pizza Van</small></div>
     <span class="demo-pill" title="Demo build with sample orders">DEMO<span class="long"> · SAMPLE ORDERS</span></span>
     <div class="spacer"></div>
-    <button class="btn-now" id="btnNow" aria-label="Back to now">⟲ Back to NOW</button>
+    <button class="btn-now" id="btnNow" aria-label="Back to now">⟲ <span class="long">Back to </span>NOW</button>
+    <button class="btn-new" id="btnNew" aria-label="New walk-in order"><span class="plus">+</span> New order</button>
     <div class="clock" id="clock" aria-live="off">16:52<span class="sec">:00</span></div>
   </header>
   <div class="banner" id="banner"><span id="bannerText">Viewing —</span><span class="bar"><i id="bannerBar"></i></span></div>
@@ -198,8 +367,65 @@
     <div class="speed" id="speed" aria-label="Demo clock speed">
       <span>clock</span>
       <button data-s="1" class="on">1×</button><button data-s="10">10×</button><button data-s="60">60×</button>
+      <button class="gear" id="gear" aria-label="Demo settings" aria-expanded="false">⚙ settings</button>
+    </div>
+    <div class="settings" id="settings" role="dialog" aria-label="Demo settings">
+      <h4>Demo settings</h4>
+      <div class="set-row"><span>Pizzas per slot</span><span class="stepper"><button data-cap="-1" aria-label="Fewer pizzas per slot">−</button><b id="capVal">8</b><button data-cap="1" aria-label="More pizzas per slot">+</button></span></div>
+      <button class="btn-reset" id="btnReset">Reset demo</button>
+      <div class="set-note" id="resetNote">Removes walk-in orders added on this device and restores default settings.</div>
     </div>
   </footer>
+</div>
+
+<div class="nb" id="nb" hidden role="dialog" aria-modal="true" aria-labelledby="nbTitle">
+  <div class="nb-head">
+    <h2 id="nbTitle">New walk-in order</h2>
+    <div class="spacer"></div>
+    <div class="clock" id="nbClock">16:52</div>
+    <button class="nb-x" id="nbClose">✕ Cancel</button>
+  </div>
+  <div class="nb-main">
+    <section class="nb-col nb-menu" aria-label="Menu">
+      <div class="nb-tabs" id="nbTabs" role="tablist"></div>
+      <div class="nb-items" id="nbItems"></div>
+    </section>
+    <section class="nb-col nb-basket" aria-label="Basket">
+      <div class="nb-h"><span>Basket</span><span id="nbCount">empty</span></div>
+      <div class="nb-lines" id="nbLines"></div>
+      <div class="nb-total"><span>Total</span><b id="nbTotal">£0.00</b></div>
+      <div class="nb-cust">
+      <div class="row2"><label class="fld f-name" id="fldName"><span>Customer name *</span><input id="nbName" type="text" autocomplete="off" autocapitalize="words" maxlength="40" placeholder="e.g. Sam Jones"></label>
+      <label class="fld"><span>Phone <small style="text-transform:none;letter-spacing:0">(optional)</small></span><input id="nbPhone" type="tel" inputmode="tel" autocomplete="off" maxlength="20" placeholder="07…"></label></div>
+      <div class="row2"><div class="f-col"><span class="lbl2">Order type</span>
+      <div class="seg" id="nbType"><button data-v="collection" class="on">Walk-in / Collection</button><button data-v="delivery">Delivery</button></div></div>
+      <div class="f-col"><span class="lbl2">Payment</span>
+      <div class="seg" id="nbPay"><button data-v="cash" class="on">Cash</button><button data-v="card">Card (paid)</button></div></div></div>
+      </div>
+    </section>
+    <section class="nb-col nb-details" aria-label="Collection slot">
+      <div class="nb-h"><span>Slot</span><span id="nbSlotHint"></span></div>
+      <div class="nb-slots" id="nbSlots"></div>
+    </section>
+  </div>
+  <div class="nb-foot">
+    <div class="nb-msg" id="nbMsg"></div>
+    <div class="spacer"></div>
+    <div class="nb-ftot"><small>Total</small><span id="nbFTotal">£0.00</span></div>
+    <button class="nb-accept" id="nbAccept">✓ Accept order</button>
+  </div>
+  <div class="nb-toast" id="nbToast"></div>
+  <div class="sheet-back" id="sheetBack" hidden>
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shTitle">
+      <div class="sh-head"><h3 id="shTitle">Item</h3><span id="shBase"></span></div>
+      <div class="sh-body" id="shBody"></div>
+      <div class="sh-foot">
+        <button class="sh-cancel" id="shCancel">Cancel</button>
+        <span class="stepper"><button data-shq="-1" aria-label="Less">−</button><b id="shQty">1</b><button data-shq="1" aria-label="More">+</button></span>
+        <button class="sh-add" id="shAdd">Add · £0.00</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -211,7 +437,11 @@ const COOK_LEAD_MIN   = 10;      // cooking starts this many minutes before a sl
 const SLOT_MIN        = 15;      // slot length
 const SNAP_BACK_MS    = 8000;    // idle time before auto-return to the cook-now slot (real ms)
 const DEMO_START      = "16:52"; // demo clock start
-const MAX_PER_SLOT    = 4;
+const MAX_PER_SLOT    = 4;       // max orders per slot
+const PIZZA_CAP_PER_SLOT = 8;    // default max pizzas per slot (incl. Garlic & Cheese Pizza Bread); adjustable in ⚙ settings
+const SERVICE_END     = "20:00"; // last slot ends here (slot picker runs up to this)
+const LS_WALKINS      = "hmKitchenDemo.walkins.v1";
+const LS_CAP          = "hmKitchenDemo.pizzaCap.v1";
 
 /* ================= MENU (prices in pence) ================= */
 const MENU = {
@@ -296,21 +526,49 @@ function priceItem(it){
   return {name:e[0], base:e[1], unit, line:unit*it.q, mods};
 }
 
-/* build model */
-const slots = SAMPLE.map((s,i)=>{
-  const start = toSec(s.slot);
-  const orders = s.orders.slice(0,MAX_PER_SLOT).map(o=>{
-    const items = o.items.map(it=>Object.assign({},it,priceItem(it)));
-    const total = items.reduce((a,b)=>a+b.line,0);
-    return Object.assign({},o,{items,total,pizzas:items.filter(x=>x.cat==="pizza"),others:items.filter(x=>x.cat!=="pizza")});
-  });
-  return {i,label:s.slot,start,end:start+SLOT_MIN*60,cookStart:start-COOK_LEAD_MIN*60,cookEnd:start-COOK_LEAD_MIN*60+SLOT_MIN*60,orders};
+/* ================= MODEL ================= */
+/* what's on each pizza → which removals are offered (cheese & sauce always) */
+const PIZZA_HAS = { marg:[], pep:["pepperoni"], haw:["ham","pineapple"], veg:["peppers","onion","mushrooms"],
+  spec:["pepperoni","ham","peppers","onion"], chick:["chicken","peppers","onion"], meat:["pepperoni","ham","chicken"] };
+const ADD2REM = {peppers:"peppers",onion:"onion",pineapple:"pineapple",mushroom:"mushrooms",pepperoni:"pepperoni",ham:"ham",chicken:"chicken"};
+const lsGet = (k,d)=>{ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(_){ return d; } };
+const lsSet = (k,v)=>{ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(_){} };
+
+function makeOrder(o){
+  const items = o.items.map(it=>Object.assign({},it,priceItem(it)));
+  const total = items.reduce((a,b)=>a+b.line,0);
+  return Object.assign({},o,{items,total,pizzas:items.filter(x=>x.cat==="pizza"),others:items.filter(x=>x.cat!=="pizza")});
+}
+const orderPizzas = o => o.pizzas.reduce((a,p)=>a+p.q,0);
+const slotPizzas  = s => s.orders.reduce((a,o)=>a+orderPizzas(o),0);
+const GRID_FIRST = toSec(SAMPLE[0].slot), GRID_LAST = toSec(SERVICE_END)-SLOT_MIN*60;
+
+/* walk-in orders added on this device (persisted) */
+let walkins = (lsGet(LS_WALKINS,[])||[]).filter(o=>{
+  try{ const t=toSec(o.time); makeOrder(o); return o && o.walkin && t>=GRID_FIRST && t<=GRID_LAST && (t-GRID_FIRST)%(SLOT_MIN*60)===0; }catch(_){ return false; }
 });
+
+/* slots: sample slots + any walk-in slots, with empty slots filling the gaps so navigation is continuous */
+const slots = [];
+function rebuildSlots(){
+  const map = new Map();
+  SAMPLE.forEach(s=>map.set(s.slot, s.orders.slice(0,MAX_PER_SLOT).map(makeOrder)));
+  walkins.forEach(o=>{ if(!map.has(o.time)) map.set(o.time,[]); map.get(o.time).push(makeOrder(o)); });
+  const times=[...map.keys()].map(toSec), lo=Math.min(...times), hi=Math.max(...times);
+  slots.length=0;
+  for(let start=lo, i=0; start<=hi; start+=SLOT_MIN*60, i++){
+    const label=hhmm(start), orders=(map.get(label)||[]).sort((a,b)=>a.no-b.no);
+    slots.push({i,label,start,end:start+SLOT_MIN*60,cookStart:start-COOK_LEAD_MIN*60,cookEnd:start-COOK_LEAD_MIN*60+SLOT_MIN*60,orders});
+  }
+}
+rebuildSlots();
+const nextOrderNo = () => Math.max(0,...SAMPLE.flatMap(s=>s.orders.map(o=>o.no)),...walkins.map(o=>o.no))+1;
 
 /* ================= STATE ================= */
 const state = {
   demoSec: toSec(DEMO_START), speed:1, cur:0, nowIdx:0,
-  lastInteract: performance.now(), doneOrders:new Set(), tickedPizzas:new Set(), followNow:true
+  lastInteract: performance.now(), doneOrders:new Set(), tickedPizzas:new Set(), followNow:true,
+  pizzaCap: Math.max(1,Math.min(30,Number(lsGet(LS_CAP,PIZZA_CAP_PER_SLOT))||PIZZA_CAP_PER_SLOT)), builderOpen:false
 };
 
 /* ================= RENDER ================= */
@@ -330,15 +588,15 @@ function ticketHTML(o){
   let pz = "";
   o.pizzas.forEach((p,idx)=>{
     const mods = p.mods.map(m=>`<div class="mod ${m.add?"add":"rem"}"><span>${m.add?"+ ":"— "}${esc(m.label)}</span><span class="p">${m.price>0?"+":""}${gbp(m.price)}</span></div>`).join("");
-    pz += `<div class="pz" data-pz="${o.no}-${idx}"><span class="chk"></span><div class="pz-main">
+    pz += `<div class="pz${state.tickedPizzas.has(o.no+"-"+idx)?" ticked":""}" data-pz="${o.no}-${idx}"><span class="chk"></span><div class="pz-main">
       <div class="pz-name"><span>${p.q}× ${esc(p.name)}</span><span class="p">${gbp(p.line)}</span></div>${mods}</div></div>`;
   });
   const payTag = o.pay==="card" ? `<span class="tag paid">✓ PAID · CARD</span>` : `<span class="tag cash">CASH TO PAY ${gbp(o.total)}</span>`;
-  return `<article class="ticket" data-order="${o.no}">
+  return `<article class="ticket${state.doneOrders.has(o.no)?" done":""}${o.walkin?" walkin":""}" data-order="${o.no}">
     <div class="t-head">
       <div class="t-row"><span class="t-no">#${o.no}</span><span class="t-time">${o.type==="delivery"?"DEL":"COL"} ${o.time}</span></div>
-      <div class="t-name">${esc(o.name)}</div>
-      <div class="t-tags"><span class="tag ${o.type==="delivery"?"del":""}">${o.type==="delivery"?"DELIVERY":"COLLECTION"}</span>${payTag}</div>
+      <div class="t-name">${esc(o.name)}</div>${o.phone?`<div class="t-phone">☎ ${esc(o.phone)}</div>`:""}
+      <div class="t-tags">${o.walkin?`<span class="tag walkin">WALK-IN</span>`:""}<span class="tag ${o.type==="delivery"?"del":""}">${o.type==="delivery"?"DELIVERY":"COLLECTION"}</span>${payTag}</div>
     </div>
     <div class="t-body">${body}</div>
     ${o.pizzas.length?`<div class="pizzas"><div class="ph"><span>PIZZAS 12"</span><span>${pq} TOTAL</span></div>${pz}</div>`:""}
@@ -349,7 +607,7 @@ function ticketHTML(o){
 
 function build(){
   track.innerHTML = slots.map(s=>{
-    const pq = s.orders.reduce((a,o)=>a+o.pizzas.reduce((x,p)=>x+p.q,0),0);
+    const pq = slotPizzas(s);
     const free = Math.max(0,MAX_PER_SLOT-s.orders.length);
     return `<section class="pane" data-slot="${s.i}">
       <div class="slothead">
@@ -357,6 +615,7 @@ function build(){
         <div class="slotinfo">
           <div class="slottime">${s.label} – ${hhmm(s.end)}</div>
           <span class="badge" data-badge></span>
+          <span class="pcap${pq>=state.pizzaCap?" full":""}" title="Pizzas in this slot / capacity">🍕 ${pq}/${state.pizzaCap} pizzas</span>
           <div class="slotmeta">${s.orders.length} order${s.orders.length!==1?"s":""} · ${pq} pizza${pq!==1?"s":""}<br>Cook from ${hhmm(s.cookStart)}</div>
         </div>
         <div class="countdown"><span class="lbl" data-cdl>Cook in</span><span class="val" data-cdv>--:--</span></div>
@@ -365,6 +624,7 @@ function build(){
       <div class="tickets">${s.orders.map(ticketHTML).join("")}${'<div class="free">FREE SPACE</div>'.repeat(free)}</div>
     </section>`;
   }).join("");
+  $("dotsbar").classList.toggle("many",slots.length>8);
   dotsEl.innerHTML = slots.map(s=>`<button class="dot" data-dot="${s.i}" aria-label="Slot ${s.label}">${s.label}<span class="ct">${s.orders.length}</span></button>`).join("");
   track.querySelectorAll('.pane:first-child [data-nav="-1"], .pane:last-child [data-nav="1"]').forEach(b=>b.disabled=true);
 }
@@ -405,7 +665,8 @@ function update(){
     d.classList.toggle("cur",s.i===state.cur);
   });
 
-  // snap-back / banner
+  // snap-back / banner (suspended while the new-order builder is open)
+  if(state.builderOpen){ touch(); nbTick(); }
   const away = state.cur!==state.nowIdx;
   $("btnNow").classList.toggle("show",away);
   $("banner").classList.toggle("show",away);
@@ -422,8 +683,10 @@ function goTo(i,user=true){
   state.cur = i;
   track.classList.remove("dragging");
   track.style.transform = `translateX(${-i*100}%)`;
+  viewport.scrollLeft = 0;
   if(user) touch();
-  [...dotsEl.children].forEach((d,k)=>d.classList.toggle("cur",k===i));
+  const n=slots.length, lo=Math.max(0,Math.min(i-3,n-7));   // phone: show a 7-dot window when there are many slots
+  [...dotsEl.children].forEach((d,k)=>{ d.classList.toggle("cur",k===i); d.classList.toggle("far",k<lo||k>lo+6); });
   track.children[i].querySelector(".tickets").scrollTop = 0;
 }
 function touch(){ state.lastInteract = performance.now(); }
@@ -476,6 +739,8 @@ viewport.addEventListener("click",e=>{
 dotsEl.addEventListener("click",e=>{ const d=e.target.closest("[data-dot]"); if(d) goTo(Number(d.dataset.dot)); });
 $("btnNow").addEventListener("click",()=>goTo(state.nowIdx));
 document.addEventListener("keydown",e=>{
+  if(state.builderOpen){ if(e.key==="Escape"){ if(!$("sheetBack").hidden) closeSheet(); } return; }
+  if(e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
   if(e.key==="ArrowLeft"){ goTo(state.cur-1); e.preventDefault(); }
   else if(e.key==="ArrowRight"){ goTo(state.cur+1); e.preventDefault(); }
   else if(e.key==="Home"||e.key==="n"||e.key==="N"){ goTo(state.nowIdx); }
@@ -487,6 +752,219 @@ $("speed").addEventListener("click",e=>{
   touch();
 });
 window.addEventListener("resize",()=>goTo(state.cur,false));
+
+/* ================= WALK-IN ORDER BUILDER ================= */
+const CATS = [["pizza","Pizzas"],["chicken","Chicken"],["chips","Chips"],["drink","Drinks"],["dip","Dips"],["dessert","Desserts"]];
+const DIP_ORDER = ["garlic","bbq","chilli"];
+const nb = {cat:"pizza", basket:[], type:"collection", pay:"cash", slot:null, userPicked:false, sheet:null, sig:"", closeArmed:0};
+const lineKey = it => [it.cat,it.k,(it.mods||[]).join(","),it.dip||""].join("|");
+const basketPizzas = () => nb.basket.filter(b=>b.cat==="pizza").reduce((a,b)=>a+b.q,0);
+const basketTotal  = () => nb.basket.reduce((a,b)=>a+priceItem(b).line,0);
+
+function openBuilder(){
+  Object.assign(nb,{lastSlot:null,cat:"pizza",basket:[],type:"collection",pay:"cash",slot:null,userPicked:false,sheet:null,sig:"",closeArmed:0});
+  $("nbName").value=""; $("nbPhone").value=""; $("fldName").classList.remove("err");
+  setSeg("nbType",nb.type); setSeg("nbPay",nb.pay); setMsg("");
+  $("nbClose").textContent="✕ Cancel"; $("nbClose").classList.remove("armed");
+  closeSheet(); renderTabs(); renderItems(); renderBasket();
+  state.builderOpen=true; touch();
+  $("nb").hidden=false; $("settings").classList.remove("show");
+  nbTick();
+}
+function closeBuilder(){ state.builderOpen=false; $("nb").hidden=true; closeSheet(); touch(); update(); }
+function setSeg(id,v){ [...$(id).children].forEach(b=>b.classList.toggle("on",b.dataset.v===v)); }
+function setMsg(t,err=false){ const m=$("nbMsg"); m.textContent=t; m.classList.toggle("err",!!err); }
+let toastT=0;
+function toast(t){ const el=$("nbToast"); el.textContent=t; el.classList.add("show"); clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),1300); }
+
+function renderTabs(){
+  $("nbTabs").innerHTML = CATS.map(([c,l])=>`<button class="nb-tab${c===nb.cat?" on":""}" role="tab" aria-selected="${c===nb.cat}" data-cat="${c}">${l}</button>`).join("");
+}
+function renderItems(){
+  const c=nb.cat;
+  $("nbItems").innerHTML = Object.entries(MENU[c]).map(([k,[name,price]])=>{
+    const opts = c==="pizza" ? "options ›" : c==="chicken" ? "+ dip? ›" : "tap to add";
+    return `<button class="nb-item" data-item="${c}:${k}"><b>${esc(name)}</b><span class="pr"><span>${gbp(price)}</span><small>${opts}</small></span></button>`;
+  }).join("");
+}
+function addToBasket(it){
+  const key=lineKey(it), ex=nb.basket.find(b=>lineKey(b)===key);
+  if(ex) ex.q+=it.q; else nb.basket.push({cat:it.cat,k:it.k,q:it.q,...(it.cat==="pizza"?{mods:it.mods||[]}:{}),...(it.cat==="chicken"?{dip:it.dip||null}:{})});
+  renderBasket(); toast(`Added ${it.q}× ${MENU[it.cat][it.k][0]}`); setMsg("");
+}
+function renderBasket(){
+  const L=$("nbLines");
+  if(!nb.basket.length){ L.innerHTML=`<div class="nb-empty">Tap items on the menu to add them</div>`; }
+  else L.innerHTML = nb.basket.map((b,i)=>{
+    const pr=priceItem(b);
+    const mods = pr.mods.map(m=>`<div class="bl-mod ${m.add?"add":"rem"}"><span>${m.add?"+ ":"— "}${esc(m.label)}</span><span>${m.price>0?"+":""}${gbp(m.price)}</span></div>`).join("")
+      + (b.cat==="chicken"&&b.dip?`<div class="bl-mod dip"><span>+ ${esc(MENU.dip[b.dip][0])}</span><span>+${gbp(CHICKEN_DIP)}</span></div>`:"");
+    return `<div class="bl" data-line="${i}"><div class="bl-main"><div class="bl-top"><span>${esc(pr.name)}</span><span class="p">${gbp(pr.line)}</span></div>${mods}${b.q>1?`<span class="bl-each">${gbp(pr.unit)} each</span>`:""}</div>
+      <div class="bl-ctl"><button class="qb" data-q="-1" aria-label="Decrease">−</button><span class="bl-q">${b.q}</span><button class="qb" data-q="1" aria-label="Increase">+</button>
+      <button class="bl-rm" data-rm aria-label="Remove line" title="Remove">✕</button></div></div>`;
+  }).join("");
+  const n=nb.basket.reduce((a,b)=>a+b.q,0), pz=basketPizzas(), tot=gbp(basketTotal());
+  $("nbCount").textContent = n ? `${n} item${n!==1?"s":""} · ${pz} pizza${pz!==1?"s":""}` : "empty";
+  $("nbTotal").textContent = tot; $("nbFTotal").textContent = tot;
+  renderSlots(true);
+}
+
+/* --- slot picker --- */
+function slotOptions(){
+  const t=state.demoSec, bp=basketPizzas(), cap=state.pizzaCap, out=[];
+  for(let st=GRID_FIRST; st<=GRID_LAST; st+=SLOT_MIN*60){
+    const label=hhmm(st), cookStart=st-COOK_LEAD_MIN*60, cookEnd=cookStart+SLOT_MIN*60;
+    if(cookEnd<=t) continue;                               // slot already finished cooking
+    const ex=slots.find(x=>x.label===label), orders=ex?ex.orders.length:0, pz=ex?slotPizzas(ex):0, left=Math.max(0,cap-pz);
+    let ok=true, why="", cls="";
+    if(t>=cookStart){ ok=false; why="COOKING"; cls="cooking"; }
+    else if(orders>=MAX_PER_SLOT){ ok=false; why="FULL"; }
+    else if(left<=0){ ok=false; why="FULL"; }
+    else if(bp>left){ ok=false; why=`ONLY ${left} LEFT`; }
+    out.push({label,orders,pz,left,ok,why,cls,cookStart});
+  }
+  return out;
+}
+function renderSlots(force){
+  const opts=slotOptions();
+  let sel = opts.find(o=>o.label===nb.slot);
+  if(!sel || !sel.ok || !nb.userPicked){
+    if(sel && !sel.ok && nb.userPicked) setMsg(`Slot ${sel.label} no longer fits this order — moved to the next available slot.`,true);
+    nb.userPicked=false; const first=opts.find(o=>o.ok); nb.slot = first?first.label:null;
+  }
+  const prevSlot = nb.lastSlot; nb.lastSlot = nb.slot;
+  const sig = state.pizzaCap+"|"+nb.slot+"|"+opts.map(o=>o.label+o.ok+o.why+o.left+o.orders).join(",");
+  if(!force && sig===nb.sig) return; nb.sig=sig;
+  $("nbSlotHint").textContent = `cap ${state.pizzaCap} pizzas · ${MAX_PER_SLOT} orders`;
+  $("nbSlots").innerHTML = (opts.length?"":`<div class="sl-none">Service has finished — no slots left today.</div>`) + opts.map(o=>{
+    const on=o.label===nb.slot;
+    const st = !o.ok ? o.why : on ? "✓ CHOSEN" : "OPEN";
+    return `<button class="sl ${o.cls}${on?" on":""}" data-slot="${o.label}" ${o.ok?"":"disabled"} aria-pressed="${on}">
+      <span class="tm">${o.label}</span>
+      <span class="inf"><b>${o.left} pizza${o.left!==1?"s":""} available</b><br>${o.orders}/${MAX_PER_SLOT} orders · cook ${hhmm(o.cookStart)}</span>
+      <span class="st">${st}</span></button>`;
+  }).join("") + (opts.length && !opts.some(o=>o.ok) ? `<div class="sl-none">No slot can take ${basketPizzas()} more pizza${basketPizzas()!==1?"s":""}.</div>` : "");
+  if(prevSlot!==nb.slot && !nb.userPicked) revealSlot();
+}
+function revealSlot(){
+  const col=$("nbSlots").parentElement, el=$("nbSlots").querySelector(".sl.on");
+  if(!el || col.scrollHeight<=col.clientHeight+1 || getComputedStyle(col).overflowY==="visible") return;
+  const r=el.getBoundingClientRect(), c=col.getBoundingClientRect();
+  if(r.top<c.top || r.bottom>c.bottom) col.scrollTop += (r.top-c.top) - (c.height-r.height)/2;
+}
+function nbTick(){ $("nbClock").textContent=hhmm(state.demoSec); renderSlots(false); }
+
+/* --- options sheet (pizzas, garlic bread, chicken) --- */
+function openSheet(cat,k){
+  nb.sheet={cat,k,q:1,add:new Set(),rem:new Set(),dip:null};
+  const [name,price]=MENU[cat][k];
+  $("shTitle").textContent=name; $("shBase").textContent=gbp(price);
+  let h="";
+  if(cat==="pizza"){
+    h+=`<div class="nb-h"><span>Add toppings</span></div><div class="chips">`+Object.entries(MENU.add).map(([mk,[l,p]])=>`<button class="chip add" data-mod="+${mk}">+ ${esc(l)}<small>+${gbp(p)}</small></button>`).join("")+`</div>`;
+    if(k!=="gcb"){
+      const rems=["cheese","sauce",...PIZZA_HAS[k]];
+      h+=`<div class="nb-h"><span>Remove</span></div><div class="chips">`+rems.map(rk=>{const [l,p]=MENU.rem[rk];return `<button class="chip rem" data-mod="-${rk}">${esc(l)}<small>${gbp(p)}</small></button>`;}).join("")+`</div>`;
+    }
+  } else {
+    h+=`<div class="nb-h"><span>Dip (optional)</span></div><div class="chips"><button class="chip dip on" data-dip="">No dip<small>£0.00</small></button>`+
+      DIP_ORDER.map(d=>`<button class="chip dip" data-dip="${d}">${esc(MENU.dip[d][0].replace(/ Dip$/,""))}<small>+${gbp(CHICKEN_DIP)}</small></button>`).join("")+`</div>`;
+  }
+  $("shBody").innerHTML=h; $("sheetBack").hidden=false; renderSheetPrice();
+}
+function sheetItem(){
+  const sh=nb.sheet;
+  if(sh.cat==="pizza"){
+    const mods=[...Object.keys(MENU.add).filter(x=>sh.add.has(x)).map(x=>"+"+x), ...Object.keys(MENU.rem).filter(x=>sh.rem.has(x)).map(x=>"-"+x)];
+    return P(sh.k,sh.q,mods);
+  }
+  return C(sh.k,sh.q,sh.dip);
+}
+function renderSheetPrice(){
+  const sh=nb.sheet; $("shQty").textContent=sh.q;
+  $("shBody").querySelectorAll("[data-mod]").forEach(b=>{ const m=b.dataset.mod; b.classList.toggle("on",(m[0]==="+"?sh.add:sh.rem).has(m.slice(1))); });
+  $("shBody").querySelectorAll("[data-dip]").forEach(b=>b.classList.toggle("on",(b.dataset.dip||null)===sh.dip));
+  $("shAdd").textContent = `Add · ${gbp(priceItem(sheetItem()).line)}`;
+}
+function closeSheet(){ nb.sheet=null; $("sheetBack").hidden=true; }
+
+/* --- accept --- */
+function acceptOrder(){
+  const name=$("nbName").value.trim().replace(/\s+/g," "), phone=$("nbPhone").value.trim();
+  if(!nb.basket.length){ setMsg("Add at least one item to the basket.",true); return false; }
+  if(!name){ $("fldName").classList.add("err"); setMsg("Customer name is required.",true); $("nbName").focus(); return false; }
+  const opt=slotOptions().find(o=>o.label===nb.slot);
+  if(!opt || !opt.ok){ renderSlots(true); setMsg("Choose an available slot.",true); return false; }
+  const o={no:nextOrderNo(),name,phone:phone||undefined,type:nb.type,time:opt.label,pay:nb.pay,walkin:true,
+    items:nb.basket.map(b=>Object.assign({cat:b.cat,k:b.k,q:b.q},b.cat==="pizza"?{mods:b.mods.slice()}:{},b.cat==="chicken"&&b.dip?{dip:b.dip}:{}))};
+  walkins.push(o); lsSet(LS_WALKINS,walkins);
+  rebuildSlots(); build();
+  state.nowIdx=computeNowIdx(state.demoSec);
+  closeBuilder();
+  const idx=slots.findIndex(s=>s.label===o.time);
+  goTo(idx,true); update();
+  const tk=track.children[idx].querySelector(`.ticket[data-order="${o.no}"]`);
+  if(tk){ tk.classList.add("flash"); setTimeout(()=>tk.classList.remove("flash"),3000);
+    const box=tk.parentElement; if(box.scrollHeight>box.clientHeight) box.scrollTop += tk.getBoundingClientRect().top-box.getBoundingClientRect().top-12; }
+  return o.no;
+}
+
+/* --- builder events --- */
+$("btnNew").addEventListener("click",openBuilder);
+$("nbTabs").addEventListener("click",e=>{ const b=e.target.closest("[data-cat]"); if(!b) return; nb.cat=b.dataset.cat; renderTabs(); renderItems(); $("nbItems").scrollTop=0; });
+$("nbItems").addEventListener("click",e=>{
+  const b=e.target.closest("[data-item]"); if(!b) return;
+  const [c,k]=b.dataset.item.split(":");
+  if(c==="pizza"||c==="chicken") openSheet(c,k); else addToBasket(X(c,k,1));
+});
+$("nbLines").addEventListener("click",e=>{
+  const row=e.target.closest("[data-line]"); if(!row) return; const i=Number(row.dataset.line), b=nb.basket[i];
+  const q=e.target.closest("[data-q]");
+  if(q){ b.q+=Number(q.dataset.q); if(b.q<=0) nb.basket.splice(i,1); renderBasket(); }
+  else if(e.target.closest("[data-rm]")){ nb.basket.splice(i,1); renderBasket(); }
+});
+$("nbSlots").addEventListener("click",e=>{ const b=e.target.closest("[data-slot]"); if(!b||b.disabled) return; nb.slot=b.dataset.slot; nb.userPicked=true; setMsg(""); renderSlots(true); });
+$("nbType").addEventListener("click",e=>{ const b=e.target.closest("[data-v]"); if(b){ nb.type=b.dataset.v; setSeg("nbType",nb.type); } });
+$("nbPay").addEventListener("click",e=>{ const b=e.target.closest("[data-v]"); if(b){ nb.pay=b.dataset.v; setSeg("nbPay",nb.pay); } });
+$("nbName").addEventListener("input",()=>{ if($("nbName").value.trim()){ $("fldName").classList.remove("err"); if($("nbMsg").textContent.startsWith("Customer")) setMsg(""); } });
+$("nbAccept").addEventListener("click",acceptOrder);
+$("nbClose").addEventListener("click",()=>{
+  const btn=$("nbClose");
+  if(nb.basket.length && !nb.closeArmed){ nb.closeArmed=setTimeout(()=>{nb.closeArmed=0;btn.textContent="✕ Cancel";btn.classList.remove("armed");},3000); btn.textContent="Discard order?"; btn.classList.add("armed"); return; }
+  clearTimeout(nb.closeArmed); nb.closeArmed=0; closeBuilder();
+});
+$("sheetBack").addEventListener("click",e=>{
+  if(e.target===$("sheetBack")){ closeSheet(); return; }
+  const sh=nb.sheet; if(!sh) return;
+  const m=e.target.closest("[data-mod]");
+  if(m){ const v=m.dataset.mod, key=v.slice(1);
+    if(v[0]==="+"){ sh.add.has(key)?sh.add.delete(key):(sh.add.add(key), ADD2REM[key]&&sh.rem.delete(ADD2REM[key])); }
+    else { sh.rem.has(key)?sh.rem.delete(key):(sh.rem.add(key), Object.keys(ADD2REM).filter(a=>ADD2REM[a]===key).forEach(a=>sh.add.delete(a))); }
+    renderSheetPrice(); return; }
+  const d=e.target.closest("[data-dip]"); if(d){ sh.dip=d.dataset.dip||null; renderSheetPrice(); return; }
+  const q=e.target.closest("[data-shq]"); if(q){ sh.q=Math.max(1,Math.min(20,sh.q+Number(q.dataset.shq))); renderSheetPrice(); return; }
+  if(e.target.closest("#shCancel")){ closeSheet(); return; }
+  if(e.target.closest("#shAdd")){ const it=sheetItem(); closeSheet(); addToBasket(it); }
+});
+
+/* --- corner settings: pizza cap + reset demo --- */
+let resetArmed=0;
+$("capVal").textContent=state.pizzaCap;
+$("gear").addEventListener("click",e=>{ e.stopPropagation(); const s=$("settings").classList.toggle("show"); $("gear").setAttribute("aria-expanded",s); touch(); });
+document.addEventListener("click",e=>{ if(!e.target.closest("#settings,#gear")) $("settings").classList.remove("show"); });
+$("settings").addEventListener("click",e=>{
+  touch();
+  const c=e.target.closest("[data-cap]");
+  if(c){ state.pizzaCap=Math.max(1,Math.min(30,state.pizzaCap+Number(c.dataset.cap))); lsSet(LS_CAP,state.pizzaCap); $("capVal").textContent=state.pizzaCap; build(); goTo(state.cur,false); update(); return; }
+  if(e.target.closest("#btnReset")){
+    const b=$("btnReset");
+    if(!resetArmed){ b.classList.add("armed"); b.textContent=`Tap again to reset (${walkins.length} walk-in order${walkins.length!==1?"s":""})`;
+      resetArmed=setTimeout(()=>{resetArmed=0;b.classList.remove("armed");b.textContent="Reset demo";},4000); return; }
+    try{ localStorage.removeItem(LS_WALKINS); localStorage.removeItem(LS_CAP); }catch(_){}
+    location.reload();
+  }
+});
+
 
 /* ================= CLOCK LOOP ================= */
 let lastReal = performance.now();
@@ -503,9 +981,10 @@ setInterval(tick,200);
 
 /* test/debug hook (demo only) */
 window.__kitchen = {
-  state, slots, goTo, COOK_LEAD_MIN, SNAP_BACK_MS,
+  state, slots, goTo, COOK_LEAD_MIN, SNAP_BACK_MS, nb, openBuilder, acceptOrder, slotOptions, basketTotal,
+  walkins:()=>walkins.slice(), slotPizzas,
   setSpeed:s=>{state.speed=s;}, setTime:hm=>{state.demoSec=toSec(hm);update();},
-  summary:()=>slots.map(s=>({slot:s.label,orders:s.orders.map(o=>({no:o.no,total:o.total}))}))
+  summary:()=>slots.map(s=>({slot:s.label,pizzas:slotPizzas(s),orders:s.orders.map(o=>({no:o.no,total:o.total,walkin:!!o.walkin}))}))
 };
 })();
 </script>
