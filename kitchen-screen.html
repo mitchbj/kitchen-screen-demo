@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
 <meta name="theme-color" content="#0f1216">
+<link rel="icon" href="data:,">
 <title>HM Catering — Kitchen (DEMO)</title>
 <style>
   :root{
@@ -158,6 +159,14 @@
   .pcap{font-size:16px;font-weight:900;padding:6px 10px;border-radius:9px;background:#22303f;color:#cfe3f7;white-space:nowrap;font-variant-numeric:tabular-nums}
   .pcap.full{background:#4a1512;color:#ffb3ad}
   .tag.walkin{background:#5b2bd6;border-color:#5b2bd6;color:#fff}
+  .tag.online{border-color:#6d28d9;color:#6d28d9}
+  .tag.till{border-color:#1d4ed8;color:#1d4ed8}
+  .syncpill{font-size:12px;font-weight:800;padding:4px 9px;border-radius:999px;letter-spacing:.4px;white-space:nowrap;border:1px solid #3a4350;color:var(--muted);background:#1a1f27}
+  .syncpill.live{color:#7ee2a2;border-color:#1c5a35;background:#0d2a19}
+  .syncpill.offline{color:#ffb3ae;border-color:#6a1a16;background:#2a0f0d}
+  .syncpill.connecting{color:var(--amber);border-color:#6b5100}
+  .synctoast{position:fixed;left:50%;top:64px;transform:translateX(-50%);background:#0d2a19;color:#9ff0c0;border:1px solid #1c5a35;font-weight:800;font-size:15px;padding:10px 16px;border-radius:12px;z-index:90;opacity:0;transition:opacity .25s;pointer-events:none;max-width:92vw;text-align:center}
+  .synctoast.show{opacity:1}
   .t-phone{font:700 13px system-ui,Arial,sans-serif;color:var(--ink2);margin-top:2px}
   .ticket.flash{animation:flash .9s ease 3}
   @keyframes flash{50%{box-shadow:0 0 0 7px var(--green),0 8px 20px rgba(0,0,0,.45)}}
@@ -294,6 +303,8 @@
     .demo-pill .long{display:none}
     .clock{font-size:22px}.clock .sec{font-size:15px}
     .demo-pill{font-size:10px;padding:3px 6px}
+    .syncpill{font-size:12px;padding:2px 6px;line-height:1}
+    .syncpill .st{display:none}
     .btn-now{height:36px;padding:0 10px;font-size:13px}
     .topbar{gap:8px;padding:0 10px}
     .slothead{gap:8px;padding:6px 8px}
@@ -352,12 +363,14 @@
   <header class="topbar">
     <div class="brand">HM Catering<span class="bk"> — Kitchen</span> <small>· Pizza Van</small></div>
     <span class="demo-pill" title="Demo build with sample orders">DEMO<span class="long"> · SAMPLE ORDERS</span></span>
+    <span class="syncpill connecting" id="syncPill" title="Till sync">● <span class="st">Connecting…</span></span>
     <div class="spacer"></div>
     <button class="btn-now" id="btnNow" aria-label="Back to now">⟲ <span class="long">Back to </span>NOW</button>
     <button class="btn-new" id="btnNew" aria-label="New walk-in order"><span class="plus">+</span> New order</button>
     <div class="clock" id="clock" aria-live="off">16:52<span class="sec">:00</span></div>
   </header>
   <div class="banner" id="banner"><span id="bannerText">Viewing —</span><span class="bar"><i id="bannerBar"></i></span></div>
+  <div class="synctoast" id="syncToast"></div>
   <main class="viewport" id="viewport">
     <div class="track" id="track"></div>
   </main>
@@ -429,6 +442,163 @@
 </div>
 
 <script>
+/* ===== HM Catering demo live sync (till ⇄ kitchen) =====
+   Transport: ntfy.sh public pub/sub (no account, no credentials in this page),
+   plus BroadcastChannel + localStorage 'storage' events for tabs in the same browser.
+   Every received message is treated as untrusted: parsed defensively, validated
+   against the menu, rebuilt into a clean object, and only ever rendered via escaping. */
+(function(){
+"use strict";
+const DEFAULT_TOPIC = "hmcatering-demo-q0u1tudjhfkcx6by";
+const BC_NAME = "hmc-demo-sync", LS_MSG = "hmc-demo-sync-msg", LS_OUTBOX = "hmc-demo-sync-outbox";
+const HISTORY = "12h";
+const qs = new URLSearchParams(location.search);
+const topicParam = qs.get("topic");
+const TOPIC = topicParam && /^[a-z0-9][a-z0-9-]{15,63}$/.test(topicParam) ? topicParam : DEFAULT_TOPIC;
+const ENABLED = qs.get("sync") !== "off";
+const BASE = "https://ntfy.sh/" + TOPIC;
+const rid = n => { const a=new Uint8Array(n), c="abcdefghijklmnopqrstuvwxyz0123456789"; (crypto||window.msCrypto).getRandomValues(a); return [...a].map(x=>c[x%36]).join(""); };
+const TYPES = ["order_accepted","order_cancelled","demo_reset"];
+const isStr = (s,max) => typeof s==="string" && s.length>0 && s.length<=max;
+
+function cleanOrder(o, MENU){
+  if(!o || typeof o!=="object") return null;
+  if(!isStr(o.id,40) || !/^[A-Za-z0-9_-]+$/.test(o.id)) return null;
+  const no = Number(o.no); if(!Number.isInteger(no) || no<1 || no>99999) return null;
+  const name = typeof o.name==="string" ? o.name.replace(/[\u0000-\u001f\u007f]/g,"").replace(/\s+/g," ").trim().slice(0,40) : "";
+  if(!name) return null;
+  if(typeof o.slot!=="string" || !/^(1[0-9]|2[0-3]):(00|15|30|45)$/.test(o.slot)) return null;
+  const type = o.type==="delivery" ? "delivery" : o.type==="collection" ? "collection" : null; if(!type) return null;
+  const pay = o.pay==="card" ? "card" : o.pay==="cash" ? "cash" : null; if(!pay) return null;
+  const source = ["online","walkin","phone"].includes(o.source) ? o.source : "walkin";
+  if(!Array.isArray(o.items) || o.items.length<1 || o.items.length>30) return null;
+  const items=[];
+  for(const it of o.items){
+    if(!it || typeof it!=="object") return null;
+    const cat=it.cat, k=it.k, q=Number(it.q);
+    if(typeof cat!=="string" || !["pizza","chicken","chips","drink","dip","dessert"].includes(cat)) return null;
+    if(typeof k!=="string" || !Object.prototype.hasOwnProperty.call(MENU[cat],k)) return null;
+    if(!Number.isInteger(q) || q<1 || q>20) return null;
+    const c={cat,k,q};
+    if(cat==="pizza"){
+      const mods = Array.isArray(it.mods) ? it.mods : [];
+      if(mods.length>12) return null;
+      const seen=new Set();
+      for(const m of mods){
+        if(typeof m!=="string" || m.length<2) return null;
+        const tbl = m[0]==="+" ? MENU.add : m[0]==="-" ? MENU.rem : null;
+        if(!tbl || !Object.prototype.hasOwnProperty.call(tbl,m.slice(1)) || seen.has(m)) return null;
+        seen.add(m);
+      }
+      c.mods=[...seen];
+    }
+    if(cat==="chicken"){
+      if(it.dip!=null && it.dip!==""){ if(typeof it.dip!=="string" || !Object.prototype.hasOwnProperty.call(MENU.dip,it.dip)) return null; c.dip=it.dip; }
+      else c.dip=null;
+    }
+    items.push(c);
+  }
+  const pizzas = items.reduce((a,b)=>a+(b.cat==="pizza"?b.q:0),0); if(pizzas>40) return null;
+  return {id:o.id, no, name, slot:o.slot, type, pay, paid:o.paid===true, source, items, origin:o.origin==="kitchen"?"kitchen":"till"};
+}
+
+function create(opts){
+  const app = opts.app, MENU = opts.menu, CID = app + "-" + rid(8);
+  let status = ENABLED ? "connecting" : "off", es = null, lastId = null, retryT = 0, outboxT = 0, sinceFallback = null;
+  const seen = new Set();
+  const setStatus = s => { status = s; try{ opts.onStatus && opts.onStatus(s, TOPIC); }catch(e){} };
+
+  function validate(ev){
+    if(!ev || typeof ev!=="object" || ev.v!==1 || ev.app!=="hmc-demo") return null;
+    if(!TYPES.includes(ev.type) || !isStr(ev.eid,40) || !/^[A-Za-z0-9_-]+$/.test(ev.eid)) return null;
+    const ts = Number(ev.ts); if(!Number.isFinite(ts) || ts<0) return null;
+    const out = {type:ev.type, eid:ev.eid, ts, src:ev.src==="kitchen"?"kitchen":"till", cid:typeof ev.cid==="string"?ev.cid.slice(0,40):""};
+    if(ev.type==="order_accepted"){ out.order = cleanOrder(ev.order, MENU); if(!out.order) return null; }
+    if(ev.type==="order_cancelled"){ if(!isStr(ev.id,40) || !/^[A-Za-z0-9_-]+$/.test(ev.id)) return null; out.id=ev.id; const n=Number(ev.no); out.no=Number.isInteger(n)?n:null; }
+    return out;
+  }
+  function handleRaw(raw, via){
+    let ev; try{ ev = typeof raw==="string" ? JSON.parse(raw) : raw; }catch(e){ return; }
+    const v = validate(ev); if(!v) return;
+    if(seen.has(v.eid)) return; seen.add(v.eid);
+    if(seen.size>5000){ seen.clear(); seen.add(v.eid); }
+    try{ opts.onEvent(v, via); }catch(e){ console.warn("sync event ignored", e); }
+  }
+  function handleNtfy(line){
+    let m; try{ m = JSON.parse(line); }catch(e){ return; }
+    if(!m || m.event!=="message" || typeof m.message!=="string") return;
+    if(typeof m.id==="string") lastId = m.id;
+    if(m.message.length>8000) return;
+    handleRaw(m.message, "ntfy");
+  }
+
+  /* same-browser fallback */
+  let bc = null;
+  try{ bc = new BroadcastChannel(BC_NAME); bc.onmessage = e => handleRaw(e.data, "local"); }catch(e){ bc = null; }
+  window.addEventListener("storage", e => { if(e.key===LS_MSG && e.newValue) handleRaw(e.newValue, "local"); });
+
+  /* outbox: survives offline / reloads */
+  const getOutbox = () => { try{ return JSON.parse(localStorage.getItem(LS_OUTBOX)||"[]")||[]; }catch(e){ return []; } };
+  const setOutbox = a => { try{ localStorage.setItem(LS_OUTBOX, JSON.stringify(a.slice(-200))); }catch(e){} };
+  async function postOne(body){
+    const r = await fetch(BASE, {method:"POST", body, keepalive: body.length<60000, cache:"no-store"});
+    if(!r.ok) throw new Error("ntfy HTTP "+r.status);
+  }
+  async function flush(){
+    clearTimeout(outboxT);
+    if(!ENABLED) return;
+    let box = getOutbox();
+    while(box.length){
+      try{ await postOne(box[0]); }catch(e){ if(status==="live") setStatus("offline"); outboxT=setTimeout(flush,5000); return; }
+      box = getOutbox(); box.shift(); setOutbox(box);
+    }
+  }
+  function publish(type, payload){
+    const ev = Object.assign({v:1, app:"hmc-demo", type, src:app, cid:CID, eid:app[0]+rid(14), ts:Date.now()}, payload||{});
+    const body = JSON.stringify(ev);
+    seen.add(ev.eid);                                   // don't re-apply our own echo
+    try{ bc && bc.postMessage(body); }catch(e){}
+    try{ localStorage.setItem(LS_MSG, body); }catch(e){}
+    if(ENABLED){ const box=getOutbox(); box.push(body); setOutbox(box); flush(); }
+    return ev;
+  }
+
+  /* subscribe: catch up history once, then live SSE (resumes from last message id) */
+  async function catchUp(){
+    try{
+      const r = await fetch(BASE + "/json?poll=1&since=" + HISTORY, {cache:"no-store"});
+      if(!r.ok) throw new Error("HTTP "+r.status);
+      const txt = await r.text();
+      txt.split("\n").forEach(l => { if(l.trim()) handleNtfy(l); });
+      return true;
+    }catch(e){ return false; }
+  }
+  function openSSE(){
+    if(es){ try{ es.close(); }catch(e){} es=null; }
+    const since = lastId || sinceFallback || HISTORY;
+    try{ es = new EventSource(BASE + "/sse?since=" + encodeURIComponent(since)); }catch(e){ setStatus("offline"); retry(); return; }
+    es.onopen = () => setStatus("live");
+    es.onmessage = e => handleNtfy(e.data);
+    es.onerror = () => { setStatus("offline"); try{ es.close(); }catch(_){} es=null; retry(); };
+  }
+  function retry(){ clearTimeout(retryT); retryT = setTimeout(openSSE, 4000); }
+  async function start(){
+    if(!ENABLED){ setStatus("off"); return; }
+    setStatus("connecting");
+    sinceFallback = String(Math.floor(Date.now()/1000));
+    const ok = await catchUp();
+    if(!ok) setStatus("offline");
+    try{ opts.onCaughtUp && opts.onCaughtUp(); }catch(e){}
+    openSSE(); flush();
+  }
+  window.addEventListener("online", () => { if(ENABLED){ openSSE(); flush(); } });
+  window.addEventListener("offline", () => { if(ENABLED) setStatus("offline"); });
+  return { start, publish, get status(){ return status; }, topic: TOPIC, enabled: ENABLED, clientId: CID, newId: p => p + rid(10), cleanOrder: o => cleanOrder(o, MENU) };
+}
+window.HMCSync = { create };
+})();
+</script>
+<script>
 (function(){
 "use strict";
 
@@ -442,6 +612,9 @@ const PIZZA_CAP_PER_SLOT = 8;    // default max pizzas per slot (incl. Garlic & 
 const SERVICE_END     = "20:00"; // last slot ends here (slot picker runs up to this)
 const LS_WALKINS      = "hmKitchenDemo.walkins.v1";
 const LS_CAP          = "hmKitchenDemo.pizzaCap.v1";
+const LS_SYNCED       = "hmKitchenDemo.synced.v1";     // orders received live from the till
+const LS_CANCELLED    = "hmKitchenDemo.cancelled.v1";  // order ids cancelled (any screen)
+const LS_RESET_TS     = "hmKitchenDemo.resetTs.v1";
 
 /* ================= MENU (prices in pence) ================= */
 const MENU = {
@@ -544,16 +717,27 @@ const slotPizzas  = s => s.orders.reduce((a,o)=>a+orderPizzas(o),0);
 const GRID_FIRST = toSec(SAMPLE[0].slot), GRID_LAST = toSec(SERVICE_END)-SLOT_MIN*60;
 
 /* walk-in orders added on this device (persisted) */
+const inGrid = l => { try{ const t=toSec(l); return t>=GRID_FIRST && t<=GRID_LAST && (t-GRID_FIRST)%(SLOT_MIN*60)===0; }catch(_){ return false; } };
 let walkins = (lsGet(LS_WALKINS,[])||[]).filter(o=>{
-  try{ const t=toSec(o.time); makeOrder(o); return o && o.walkin && t>=GRID_FIRST && t<=GRID_LAST && (t-GRID_FIRST)%(SLOT_MIN*60)===0; }catch(_){ return false; }
+  try{ makeOrder(o); return o && o.walkin && inGrid(o.time); }catch(_){ return false; }
 });
+let walkinIdsAdded=false;
+walkins.forEach(o=>{ if(typeof o.id!=="string"||!/^[A-Za-z0-9_-]{1,40}$/.test(o.id)){ o.id="K"+o.no+"x"+Math.random().toString(36).slice(2,10); walkinIdsAdded=true; } });
+if(walkinIdsAdded) lsSet(LS_WALKINS,walkins);
+/* live sync state (validated again on load — localStorage is untrusted too) */
+const syncApi = window.HMCSync.create({app:"kitchen", menu:MENU, onEvent:e=>onSync(e), onStatus:(st,topic)=>onSyncStatus(st,topic)});
+let synced = (lsGet(LS_SYNCED,[])||[]).map(o=>syncApi.cleanOrder(o)).filter(o=>o && inGrid(o.slot));
+const cancelled = new Set((lsGet(LS_CANCELLED,[])||[]).filter(x=>typeof x==="string").slice(-2000));
+let resetTs = Number(lsGet(LS_RESET_TS,0))||0;
+const toKitchen = c => ({id:c.id,no:c.no,name:c.name,type:c.type,time:c.slot,pay:c.pay,paid:c.paid,walkin:c.source==="walkin",source:c.source,synced:true,items:c.items});
 
 /* slots: sample slots + any walk-in slots, with empty slots filling the gaps so navigation is continuous */
 const slots = [];
 function rebuildSlots(){
   const map = new Map();
-  SAMPLE.forEach(s=>map.set(s.slot, s.orders.slice(0,MAX_PER_SLOT).map(makeOrder)));
-  walkins.forEach(o=>{ if(!map.has(o.time)) map.set(o.time,[]); map.get(o.time).push(makeOrder(o)); });
+  SAMPLE.forEach(s=>map.set(s.slot, s.orders.slice(0,MAX_PER_SLOT).filter(o=>!cancelled.has("S"+o.no)).map(o=>makeOrder(Object.assign({id:"S"+o.no},o)))));
+  walkins.filter(o=>!cancelled.has(o.id)).forEach(o=>{ if(!map.has(o.time)) map.set(o.time,[]); map.get(o.time).push(makeOrder(o)); });
+  synced.filter(o=>!cancelled.has(o.id)).forEach(c=>{ const o=toKitchen(c); if(!map.has(o.time)) map.set(o.time,[]); map.get(o.time).push(makeOrder(o)); });
   const times=[...map.keys()].map(toSec), lo=Math.min(...times), hi=Math.max(...times);
   slots.length=0;
   for(let start=lo, i=0; start<=hi; start+=SLOT_MIN*60, i++){
@@ -562,7 +746,7 @@ function rebuildSlots(){
   }
 }
 rebuildSlots();
-const nextOrderNo = () => Math.max(0,...SAMPLE.flatMap(s=>s.orders.map(o=>o.no)),...walkins.map(o=>o.no))+1;
+const nextOrderNo = () => Math.max(0,...SAMPLE.flatMap(s=>s.orders.map(o=>o.no)),...walkins.map(o=>o.no),...synced.map(o=>o.no))+1;
 
 /* ================= STATE ================= */
 const state = {
@@ -591,16 +775,16 @@ function ticketHTML(o){
     pz += `<div class="pz${state.tickedPizzas.has(o.no+"-"+idx)?" ticked":""}" data-pz="${o.no}-${idx}"><span class="chk"></span><div class="pz-main">
       <div class="pz-name"><span>${p.q}× ${esc(p.name)}</span><span class="p">${gbp(p.line)}</span></div>${mods}</div></div>`;
   });
-  const payTag = o.pay==="card" ? `<span class="tag paid">✓ PAID · CARD</span>` : `<span class="tag cash">CASH TO PAY ${gbp(o.total)}</span>`;
-  return `<article class="ticket${state.doneOrders.has(o.no)?" done":""}${o.walkin?" walkin":""}" data-order="${o.no}">
+  const payTag = (o.pay==="card"||o.paid) ? `<span class="tag paid">✓ PAID · ${o.pay==="card"?"CARD":"CASH"}</span>` : `<span class="tag cash">CASH TO PAY ${gbp(o.total)}</span>`;
+  return `<article class="ticket${state.doneOrders.has(o.no)?" done":""}${o.walkin?" walkin":""}" data-order="${o.no}" data-id="${esc(o.id||"")}">
     <div class="t-head">
       <div class="t-row"><span class="t-no">#${o.no}</span><span class="t-time">${o.type==="delivery"?"DEL":"COL"} ${o.time}</span></div>
       <div class="t-name">${esc(o.name)}</div>${o.phone?`<div class="t-phone">☎ ${esc(o.phone)}</div>`:""}
-      <div class="t-tags">${o.walkin?`<span class="tag walkin">WALK-IN</span>`:""}<span class="tag ${o.type==="delivery"?"del":""}">${o.type==="delivery"?"DELIVERY":"COLLECTION"}</span>${payTag}</div>
+      <div class="t-tags">${o.walkin?`<span class="tag walkin">WALK-IN</span>`:""}${o.synced&&o.source==="online"?`<span class="tag online">ONLINE</span>`:""}${o.synced&&o.source==="phone"?`<span class="tag">PHONE</span>`:""}${o.synced?`<span class="tag till" title="Received live from the till">⇄ TILL</span>`:""}<span class="tag ${o.type==="delivery"?"del":""}">${o.type==="delivery"?"DELIVERY":"COLLECTION"}</span>${payTag}</div>
     </div>
     <div class="t-body">${body}</div>
     ${o.pizzas.length?`<div class="pizzas"><div class="ph"><span>PIZZAS 12"</span><span>${pq} TOTAL</span></div>${pz}</div>`:""}
-    <div class="t-total"><span>TOTAL<small>${o.items.reduce((a,b)=>a+b.q,0)} items · ${o.pay==="card"?"paid card":"cash due"}</small></span><span>${gbp(o.total)}</span></div>
+    <div class="t-total"><span>TOTAL<small>${o.items.reduce((a,b)=>a+b.q,0)} items · ${o.pay==="card"?"paid card":o.paid?"paid cash":"cash due"}</small></span><span>${gbp(o.total)}</span></div>
     <div class="stamp">✓ DONE</div>
   </article>`;
 }
@@ -895,9 +1079,10 @@ function acceptOrder(){
   if(!name){ $("fldName").classList.add("err"); setMsg("Customer name is required.",true); $("nbName").focus(); return false; }
   const opt=slotOptions().find(o=>o.label===nb.slot);
   if(!opt || !opt.ok){ renderSlots(true); setMsg("Choose an available slot.",true); return false; }
-  const o={no:nextOrderNo(),name,phone:phone||undefined,type:nb.type,time:opt.label,pay:nb.pay,walkin:true,
+  const o={id:syncApi.newId("K"),no:nextOrderNo(),name,phone:phone||undefined,type:nb.type,time:opt.label,pay:nb.pay,walkin:true,
     items:nb.basket.map(b=>Object.assign({cat:b.cat,k:b.k,q:b.q},b.cat==="pizza"?{mods:b.mods.slice()}:{},b.cat==="chicken"&&b.dip?{dip:b.dip}:{}))};
   walkins.push(o); lsSet(LS_WALKINS,walkins);
+  syncApi.publish("order_accepted",{order:{id:o.id,no:o.no,name:o.name,slot:o.time,type:o.type,pay:o.pay,paid:o.pay==="card",source:"walkin",origin:"kitchen",items:o.items}});
   rebuildSlots(); build();
   state.nowIdx=computeNowIdx(state.demoSec);
   closeBuilder();
@@ -960,11 +1145,59 @@ $("settings").addEventListener("click",e=>{
     const b=$("btnReset");
     if(!resetArmed){ b.classList.add("armed"); b.textContent=`Tap again to reset (${walkins.length} walk-in order${walkins.length!==1?"s":""})`;
       resetArmed=setTimeout(()=>{resetArmed=0;b.classList.remove("armed");b.textContent="Reset demo";},4000); return; }
-    try{ localStorage.removeItem(LS_WALKINS); localStorage.removeItem(LS_CAP); }catch(_){}
-    location.reload();
+    const ev=syncApi.publish("demo_reset",{});
+    try{ localStorage.removeItem(LS_WALKINS); localStorage.removeItem(LS_CAP); localStorage.removeItem(LS_SYNCED); localStorage.removeItem(LS_CANCELLED); }catch(_){}
+    lsSet(LS_RESET_TS,ev.ts);
+    setTimeout(()=>location.reload(),400);
   }
 });
 
+
+
+/* ================= LIVE SYNC with the Till ================= */
+function refreshAfterSync(focusId){
+  const curLabel = slots[state.cur] ? slots[state.cur].label : null, nowWas = state.cur===state.nowIdx;
+  rebuildSlots(); build();
+  state.nowIdx = computeNowIdx(state.demoSec);
+  let idx = nowWas ? state.nowIdx : Math.max(0,slots.findIndex(s=>s.label===curLabel));
+  goTo(idx,false); update();
+  if(focusId){ const tk=track.querySelector(`.ticket[data-id="${CSS.escape(focusId)}"]`); if(tk){ tk.classList.add("flash"); setTimeout(()=>tk.classList.remove("flash"),3000); } }
+}
+let syncToastT=0;
+function syncToast(t){ const el=$("syncToast"); el.textContent=t; el.classList.add("show"); clearTimeout(syncToastT); syncToastT=setTimeout(()=>el.classList.remove("show"),3500); }
+const allIds = () => new Set([...SAMPLE.flatMap(s=>s.orders.map(o=>"S"+o.no)), ...walkins.map(o=>o.id), ...synced.map(o=>o.id)]);
+function onSync(ev){
+  if(ev.ts < resetTs) return;                              // older than the last demo reset
+  if(ev.type==="demo_reset"){
+    if(ev.ts<=resetTs) return;
+    resetTs=ev.ts; lsSet(LS_RESET_TS,resetTs);
+    walkins=[]; synced=[]; cancelled.clear(); lsSet(LS_WALKINS,walkins); lsSet(LS_SYNCED,synced); lsSet(LS_CANCELLED,[]);
+    state.doneOrders.clear(); state.tickedPizzas.clear();
+    if(state.builderOpen) closeBuilder();
+    refreshAfterSync(); syncToast("⟲ Demo reset on another screen"); return;
+  }
+  if(ev.type==="order_accepted"){
+    const c=ev.order;
+    if(cancelled.has(c.id) || allIds().has(c.id)) return;  // dedupe by order id
+    if(!inGrid(c.slot)) return;
+    synced.push(c); lsSet(LS_SYNCED,synced);
+    refreshAfterSync(c.id);
+    syncToast(`⇄ New from till: #${c.no} ${c.name} · ${c.slot}`);
+    return;
+  }
+  if(ev.type==="order_cancelled"){
+    if(cancelled.has(ev.id)) return;
+    const known = allIds().has(ev.id);
+    cancelled.add(ev.id); lsSet(LS_CANCELLED,[...cancelled]);
+    synced=synced.filter(o=>o.id!==ev.id); lsSet(LS_SYNCED,synced);
+    if(known){ refreshAfterSync(); syncToast(`✕ Cancelled on till: #${ev.no!=null?ev.no:"?"}`); }
+  }
+}
+function onSyncStatus(st,topic){
+  const el=$("syncPill"); if(!el) return; el.className="syncpill "+st;
+  el.querySelector(".st").innerHTML = st==="live" ? 'Live<span class="long"> · till sync</span>' : st==="offline" ? 'Offline<span class="long"> · retrying</span>' : st==="off" ? "Sync off" : "Connecting…";
+  el.title="Live sync with the till via ntfy.sh topic "+topic+" (+ same-browser tabs)";
+}
 
 /* ================= CLOCK LOOP ================= */
 let lastReal = performance.now();
@@ -978,11 +1211,12 @@ state.nowIdx = computeNowIdx(state.demoSec);
 goTo(state.nowIdx,false);
 update();
 setInterval(tick,200);
+syncApi.start();
 
 /* test/debug hook (demo only) */
 window.__kitchen = {
   state, slots, goTo, COOK_LEAD_MIN, SNAP_BACK_MS, nb, openBuilder, acceptOrder, slotOptions, basketTotal,
-  walkins:()=>walkins.slice(), slotPizzas,
+  walkins:()=>walkins.slice(), synced:()=>synced.slice(), sync:()=>({status:syncApi.status,topic:syncApi.topic}), slotPizzas,
   setSpeed:s=>{state.speed=s;}, setTime:hm=>{state.demoSec=toSec(hm);update();},
   summary:()=>slots.map(s=>({slot:s.label,pizzas:slotPizzas(s),orders:s.orders.map(o=>({no:o.no,total:o.total,walkin:!!o.walkin}))}))
 };
